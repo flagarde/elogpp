@@ -94,3 +94,6 @@
 
 #Folders
 /build
+/bin
+/lib
+/include
