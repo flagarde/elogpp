@@ -1,0 +1,4 @@
+[submodule "sources/submodules/jsoncpp"]
+	path = sources/submodules/jsoncpp
+	url = https://github.com/open-source-parsers/jsoncpp.git
+	branch = master
