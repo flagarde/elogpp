@@ -2,3 +2,7 @@
 	path = submodules/jsoncpp
 	url = https://github.com/open-source-parsers/jsoncpp.git
 	branch = master
+[submodule "submodules/pstreams"]
+	path = submodules/pstreams
+	url = https://git.code.sf.net/p/pstreams/code
+	branch = master
