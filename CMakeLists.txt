@@ -30,3 +30,4 @@ OPTION(JSONCPP_WITH_POST_BUILD_UNITTEST "Automatically run unit-tests as a post 
 OPTION(JSONCPP_WITH_PKGCONFIG_SUPPORT "Generate and install .pc files" OFF)
 OPTION(JSONCPP_WITH_CMAKE_PACKAGE "Generate and install cmake package files" OFF)
 ADD_SUBDIRECTORY(submodules/jsoncpp)
+ADD_SUBDIRECTORY(elogcpp)
