@@ -6,3 +6,7 @@
 	path = submodules/pstreams
 	url = https://git.code.sf.net/p/pstreams/code
 	branch = master
+[submodule "submodules/fmt"]
+	path = submodules/fmt
+	url = https://github.com/fmtlib/fmt.git
+	branch = master
