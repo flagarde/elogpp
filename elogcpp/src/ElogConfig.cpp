@@ -17,7 +17,6 @@ ElogServer& ElogConfig::GetServer(std::string server)
     if(HasServer(server)) return Servers[server];
 }
 
-
 bool ElogConfig::HasUser(std::string user)
 {
     if(Users.find(user)!=Users.end()) return true;
