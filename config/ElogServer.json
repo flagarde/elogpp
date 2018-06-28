@@ -1,0 +1,33 @@
+{
+    "ElogServers":
+    [
+        {
+            "Name":"Server1",
+            "Description":"My Server 1",
+            "Hostname":"localhost",
+            "Port":"90",
+            "SSL":false,
+            "Logbooks":
+            [
+                {"Name":"Accelerator", "Description":"My Accelerator Logbook"},
+                {"Name":"Detector", "Description":"My Detector Logbook"}
+            ]
+        }
+        ,
+        {
+            "Name":"Server 2",
+            "Description":"My Server 2",
+            "Hostname":"localhost",
+            "Port":"450",
+            "SSL":true,
+            "Logbooks":
+            [
+                {"Name":"Logbook", "Description":"My Logbook"}
+            ]
+        }
+    ],
+    "ElogUsers":
+    [
+        {"Name":"admin","Password":"Admin"}
+    ]
+}
