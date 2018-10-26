@@ -1,6 +1,7 @@
 #include "ElogEntry.h"
 #include <iostream>
 #include <vector>
+#include <ctype.h>
 namespace elogpp
 {
 
@@ -12,12 +13,16 @@ bool ElogEntry::Sended(std::string message)
 
 std::string ElogEntry::SupressSpaces(std::string part)
 {
-    std::string space=" ";
-    std::size_t foundbegin = part.find_first_not_of(space);
-    if(foundbegin!=std::string::npos)part=part.erase(0,foundbegin);
+    if(part==" ") return "";
+    while(!isgraph(part[0]))
+    {
+        part=part.erase(0,1);
+    }
     part=std::string(part.rbegin(),part.rend());
-    std::size_t foundend=part.find_first_not_of(space);
-    if(foundend!=std::string::npos) part=part.erase(0,foundend);
+    while(!isgraph(part[0]))
+    {
+        part=part.erase(0,1);
+    }
     part=std::string(part.rbegin(),part.rend());
     return std::move(part);
 }
