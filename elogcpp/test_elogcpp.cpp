@@ -10,38 +10,45 @@ int main()
     //manager.PrintServer();
     //manager.PrintUser();
     //manager.SetDefaultUser("Moi");
-    //for(unsigned i=0;i!=10;++i)
-    //{
-        ElogEntry entry= manager.CreateEntry();
-  
-    entry.SetAttribute("Type","Comments");
-    //entry.SetAttribute("Subject","where are you? "+std::to_string(i));
-        //entry.User("Machine").To("demo","Accelerator").Send();
-    //Message& mess2= manager.CreateMessage();
-    //mess2.SetAttribute("titi","teta");
-    //mess2.SetMessage("Mais où est donc Ornicar");
-    //entry.AddAttachment("jfjjf.txt");
-        //entry.AddAttachment("ldldl.jpg");
-    //entry.AddFileMessage("kk.txt");
-    entry.SetMessage("Ça marche");
-    //entry.Print();
-   // mess2.Print();
-   // std::cout<<"Send"<<std::endl;
+    ElogEntry entry= manager.CreateEntry();
+    std::cout<<"*****************************************************"<<std::endl;
+    std::cout<<"* 1) Last entry is :                                *"<<std::endl;
+    std::cout<<"*****************************************************"<<std::endl;
+    entry.User("admin").To("Server1","demo").ReceiveEntry("last");
+    entry.Print();
     
-    //std::cout<<"Edit"<<std::endl;
-    //entry.User("Machine").To("demo","Accelerator").Edit(2).Send();
-    //std::cout<<"Reply"<<std::endl;
-    //entry.User("Machine").To("demo","Accelerator").ReplyTo(2).Send();
-    //std::cout<<"Reply+Quote"<<std::endl;
-    //entry.User("Machine").To("demo","Accelerator").Send();
-    //std::cout<<"Download"<<std::endl;
-    //entry.User("Machine").To("demo","Accelerator").ReceiveEntry("last");
-    //entry.Print();
-    //entry.SetMessage("I'm need to talk with you!");
-    //if(entry.User("Machine").To("demo","Accelerator").Send("V-X0"))std::cout<<"WOOOOOW! ÇA MARCHE!"<<std::endl;
-    //else std::cout<<"OH! OH!"<<std::endl;
-    entry.User("lagarde").To("IPNL","RPC-H2").Send("V+");
-    //}
-   // entry.Print();
-   // std::cout<<entry.GetAttribute("Category")<<std::endl;
+    std::cout<<"*****************************************************"<<std::endl;
+    std::cout<<"* 2) Now creating a new entry"<<std::endl;
+    std::cout<<"*****************************************************"<<std::endl;
+    ElogEntry entry4= manager.CreateEntry();
+    entry4.SetAttribute("Type","Other");
+    entry4.SetAttribute("Author","Boss");
+    //entry.AddAttachment("MyPicture.jpg");
+    entry4.SetMessage("Please say something !");
+    entry4.User("admin").To("Server1","demo").Send("V");
+    entry4.Print();
+    
+    std::cout<<"*****************************************************"<<std::endl;
+    std::cout<<"* 3) Now replying to it                             *"<<std::endl;
+    std::cout<<"*****************************************************"<<std::endl;
+    ElogEntry entry2= manager.CreateEntry();
+    entry2.SetAttribute("Type","Routine");
+    entry2.SetAttribute("Author","Toto");
+    entry2.SetMessage("Something !");
+    entry2.User("admin").To("Server1","demo").ReplyTo("last").Send();
+    entry2.Print();
+    
+    
+    std::cout<<"*****************************************************"<<std::endl;
+    std::cout<<"* 4) Now the last entry is :                         *"<<std::endl;
+    std::cout<<"*****************************************************"<<std::endl;
+    ElogEntry entry3= manager.CreateEntry();
+    entry3.User("admin").To("Server1","demo").ReceiveEntry("last");
+    entry3.Print();
+    
+    std::cout<<"*****************************************************"<<std::endl;
+    std::cout<<"* 5) I can extract data from the new last entry !   *"<<std::endl;
+    std::cout<<"*****************************************************"<<std::endl;
+    std::cout<<"His Author is : "<<entry.GetAttribute("Author")<<std::endl;
+    std::cout<<"And this idiot said :"<<entry.GetTextMessage()<<std::endl;
 }

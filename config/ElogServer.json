@@ -9,7 +9,7 @@
             "SSL":false,
             "Logbooks":
             [
-                {"Name":"Accelerator", "Description":"My Accelerator Logbook"},
+                {"Name":"demo", "Description":"Elog demo"},
                 {"Name":"Detector", "Description":"My Detector Logbook"}
             ]
         }
