@@ -36,6 +36,7 @@ public:
     ElogEntry& ReceiveEntry(std::string);
     ElogEntry& ReceiveEntry(int);
 private :
+    std::string GetLastID();
     bool Sended(std::string);
     std::string SupressSpaces(std::string);
     void ParseHeader(std::string);

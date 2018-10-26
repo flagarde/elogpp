@@ -53,7 +53,7 @@ void ElogEntry::ParseReceivedCommand(std::string entry)
     std::size_t found=entry.find(Delimiter);
     std::size_t BeginingMessage=found+Delimiter.size();
     message.SetMessage(SupressSpaces(entry.substr(BeginingMessage)));
-    entry.erase(found);
+    if(found!=std::string::npos)entry.erase(found);
     ParseHeader(entry);
 }
         
@@ -61,7 +61,14 @@ ElogEntry& ElogEntry::ReceiveEntry(int id)
 {
     return ReceiveEntry(std::to_string(id));
 }
-    
+
+std::string ElogEntry::GetLastID()
+{
+    ElogEntry toto(*this);
+    toto.ReceiveEntry("last");
+    return toto.GetAttribute("ID");
+}
+
 ElogEntry& ElogEntry::ReceiveEntry(std::string id)
 {
     Command.AddToCommand(id,Command.SetAsDownload());
@@ -88,6 +95,10 @@ ElogEntry & ElogEntry::ReplyTo(int id,std::string option)
 
 ElogEntry & ElogEntry::ReplyTo(std::string id,std::string option)
 {
+    if(id=="last")
+    {
+        id=GetLastID();
+    }
     Command.AddToCommand(id,option);
     return *this;
 }
