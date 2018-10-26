@@ -8,10 +8,10 @@ cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
 
 # Name Project
-PROJECT(SJTUrpc)
+PROJECT(elogpp)
 
 # Project Version 
-SET( SJTURPC_VERSION_MAJOR 0 )
+SET( SJTURPC_VERSION_MAJOR 1 )
 SET( SJTURPC_VERSION_MINOR 0 )
 SET( SJTURPC_VERSION_PATCH 0 )
 
@@ -30,11 +30,11 @@ OPTION(JSONCPP_WITH_PKGCONFIG_SUPPORT "Generate and install .pc files" OFF)
 OPTION(JSONCPP_WITH_CMAKE_PACKAGE "Generate and install cmake package files" OFF)
 ADD_SUBDIRECTORY(submodules/jsoncpp)
 
-option(FMT_DOC "Generate the doc target." OFF)
-option(FMT_INSTALL "Generate the install target." ON)
-option(FMT_TEST "Generate the test target." OFF)
-OPTION(BUILD_SHARED_LIBS "" OFF)
-ADD_SUBDIRECTORY(submodules/fmt)
+#option(FMT_DOC "Generate the doc target." OFF)
+#option(FMT_INSTALL "Generate the install target." ON)
+#option(FMT_TEST "Generate the test target." OFF)
+#OPTION(BUILD_SHARED_LIBS "" OFF)
+#ADD_SUBDIRECTORY(submodules/fmt)
 
 
 ADD_SUBDIRECTORY(elogcpp)
