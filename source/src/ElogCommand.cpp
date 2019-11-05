@@ -4,7 +4,7 @@
 #include <map>
 #include <fstream>
 #include <streambuf>
-#include "pstream.h"
+#include "pstreams/pstream.h"
 
 namespace elogpp
 {
@@ -106,12 +106,12 @@ void ElogCommand::BuildCommand()
     Command=Elog+ServerPart+UserPart+ReplyEditDownload+OptionsPart+MessagePart;
 }
 
-void ElogCommand::AddToCommand(ElogUser& user)
+void ElogCommand::AddToCommand(ElogUser user)
 {
     UserPart=UsernamePasswordParam+user.GetName()+" "+user.GetPassword();
 }
 
-void ElogCommand::AddToCommand(ElogServer& server,std::string elog)
+void ElogCommand::AddToCommand(ElogServer server,std::string elog)
 {
     ServerPart=HostParam+server.GetHostname();
     if(server.GetPort()!="")ServerPart+=PortParam+server.GetPort();

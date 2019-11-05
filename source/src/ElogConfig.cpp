@@ -7,14 +7,16 @@
 
 namespace elogpp
 {
-ElogUser& ElogConfig::GetUser(std::string user)
+ElogUser ElogConfig::GetUser(std::string user)
 {
     if(HasUser(user)) return Users[user];
+    else return ElogUser();
 }
 
-ElogServer& ElogConfig::GetServer(std::string server)
+ElogServer ElogConfig::GetServer(std::string server)
 {
     if(HasServer(server)) return Servers[server];
+    else return ElogServer();
 }
 
 bool ElogConfig::HasUser(std::string user)

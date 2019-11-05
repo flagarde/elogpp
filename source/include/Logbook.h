@@ -13,8 +13,8 @@ public:
     std::string GetDescription();
     void Print(std::string="");
 private:
-    std::string Description;
-    std::string Name;
+    std::string Description{""};
+    std::string Name{""};
 };
 }
 #endif

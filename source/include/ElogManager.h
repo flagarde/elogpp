@@ -21,7 +21,7 @@ public:
 private:
     ElogConfig conf;
     bool Verbose{false};
-    std::string DefaultUser;
+    std::string DefaultUser{""};
     ElogCommand Command;
 };
 }

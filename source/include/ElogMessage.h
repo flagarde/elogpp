@@ -32,8 +32,8 @@ public:
 private:
     std::vector<std::string> Attachments;
     std::map<std::string,std::string> Attributes;
-    std::string TextMessage;
-    std::string FileMessage;
+    std::string TextMessage{""};
+    std::string FileMessage{""};
 };
 }
 #endif

@@ -16,8 +16,8 @@ public:
     void PrintUser(std::string="");
     bool HasUser(std::string);
     bool HasServer(std::string);
-    ElogUser& GetUser(std::string);
-    ElogServer& GetServer(std::string);
+    ElogUser GetUser(std::string);
+    ElogServer GetServer(std::string);
 private :
     std::map<std::string,ElogServer> Servers;
     std::map<std::string,ElogUser>Users;

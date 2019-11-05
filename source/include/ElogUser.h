@@ -13,8 +13,8 @@ public:
     std::string GetPassword();
     void Print();
 private:
-    std::string Name;
-    std::string Password;
+    std::string Name{""};
+    std::string Password{""};
 };
 }
 #endif

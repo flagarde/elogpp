@@ -27,12 +27,12 @@ public :
     void AddLogbook(Logbook);
 private:
     void SetServerNumber(const unsigned int&);
-    std::string Hostname;
-    std::string Port;
-    std::string SubDir;
-    bool SSL;
-    std::string Name;
-    std::string Description;
+    std::string Hostname{""};
+    std::string Port{""};
+    std::string SubDir{""};
+    bool SSL{false};
+    std::string Name{""};
+    std::string Description{""};
     inline static int ServerNumberTotal{0};
     unsigned int ServerNumber{0};
     std::map<std::string,Logbook>Logbooks;

@@ -13,8 +13,8 @@ public:
     enum class Type{Reply,Download,Option}; 
     void BuildCommand();
     std::string Execute();
-    void AddToCommand(ElogServer&,std::string);
-    void AddToCommand(ElogUser&);
+    void AddToCommand(ElogServer,std::string);
+    void AddToCommand(ElogUser);
     void AddToCommand(ElogMessage&);
     void AddToCommand(std::string,Type);
     void AddToCommand(std::string,std::string);
@@ -53,10 +53,10 @@ private:
     static inline const std::string VerboseParam = " -v";
     static inline const std::string SupressEmailNotificationParam= " -x ";
     static inline const std::string EncodingParam= " -n ";
-    std::string OptionsPart;
+    std::string OptionsPart{""};
     enum class Encoding{ELcode,plain,HTML};
     
-    std::string Command;
+    std::string Command{""};
 };
 }
 #endif

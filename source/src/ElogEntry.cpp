@@ -135,7 +135,11 @@ std::string ElogEntry::ExecuteCommand()
 ElogEntry& ElogEntry::To(std::string server,std::string logbook)
 {
     if(conf.HasServer(server))Command.AddToCommand(conf.GetServer(server),logbook);
-    else std::cout<<"Server "<<server<<" unknown ! Please check your configuration files !\n";
+    else
+    {
+        std::cout<<"Server "<<server<<" unknown ! Please check your configuration files !\n";
+        std::exit(2);
+    }
     return *this;
 }
 

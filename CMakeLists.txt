@@ -34,27 +34,28 @@ ExternalProject_Add(
                     GIT_REPOSITORY ${jsoncpp_repository}
                     GIT_TAG ${jsoncpp_version}
                     GIT_PROGRESS TRUE
-                    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} -DCMAKE_CXX_FLAGS="-fPIC" -DJSONCPP_WITH_TESTS=${JSONCPP_WITH_TESTS} -DJSONCPP_WITH_POST_BUILD_UNITTEST=${JSONCPP_WITH_POST_BUILD_UNITTEST} -DJSONCPP_WITH_PKGCONFIG_SUPPORT=${JSONCPP_WITH_PKGCONFIG_SUPPORT} -DJSONCPP_WITH_CMAKE_PACKAGE=${JSONCPP_WITH_CMAKE_PACKAGE}
+                    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} -DJSONCPP_WITH_TESTS=${JSONCPP_WITH_TESTS} -DJSONCPP_WITH_POST_BUILD_UNITTEST=${JSONCPP_WITH_POST_BUILD_UNITTEST} -DJSONCPP_WITH_PKGCONFIG_SUPPORT=${JSONCPP_WITH_PKGCONFIG_SUPPORT} -DJSONCPP_WITH_CMAKE_PACKAGE=${JSONCPP_WITH_CMAKE_PACKAGE}
                     PREFIX ${CMAKE_CURRENT_BINARY_DIR}/jsoncpp-prefix
                     SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/jsoncpp
                     INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
                     )
 
-
-
-
-SET(SUBMODULES_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/submodules")
-
-#Submodules
-#jsoncpp
-
-#ADD_SUBDIRECTORY(submodules/jsoncpp)
-
-#option(FMT_DOC "Generate the doc target." OFF)
-#option(FMT_INSTALL "Generate the install target." ON)
-#option(FMT_TEST "Generate the test target." OFF)
-#OPTION(BUILD_SHARED_LIBS "" OFF)
-#ADD_SUBDIRECTORY(submodules/fmt)
-
+set( pstreams_repository "https://github.com/RPClab/pstreams" )
+set( pstreams_version "master" )
+# ----- pstreams package -----
+ExternalProject_Add( 
+                    pstreams
+                    GIT_REPOSITORY ${pstreams_repository}
+                    GIT_TAG ${pstreams_version}
+                    GIT_PROGRESS TRUE
+                    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+ 		    #CONFIGURE_COMMAND ""
+		    CONFIGURE_COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/pstreams/pstream.h ${CMAKE_INSTALL_PREFIX}/include/pstreams/pstream.h
+		    BUILD_COMMAND ""
+  		    INSTALL_COMMAND ""
+                    PREFIX ${CMAKE_CURRENT_BINARY_DIR}/pstreams-prefix
+                    SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/pstreams
+                    INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
+                    )
 
 ADD_SUBDIRECTORY(source)
