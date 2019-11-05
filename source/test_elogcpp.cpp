@@ -14,10 +14,10 @@ int main()
     std::cout<<"*****************************************************"<<std::endl;
     std::cout<<"* 1) Last entry is :                                *"<<std::endl;
     std::cout<<"*****************************************************"<<std::endl;
-    entry.User("admin").To("Server1","demo").ReceiveEntry("last");
+    entry.User("DAQ").To("NAS","Runs").ReceiveEntry("last");
     entry.Print();
     
-    std::cout<<"*****************************************************"<<std::endl;
+    /*std::cout<<"*****************************************************"<<std::endl;
     std::cout<<"* 2) Now creating a new entry                       *"<<std::endl; 
     std::cout<<"*****************************************************"<<std::endl;
     ElogEntry entry4= manager.CreateEntry();
@@ -50,5 +50,5 @@ int main()
     std::cout<<"* 5) I can extract data from the new last entry !   *"<<std::endl;
     std::cout<<"*****************************************************"<<std::endl;
     std::cout<<"His Author is : "<<entry.GetAttribute("Author")<<std::endl;
-    std::cout<<"And this idiot said : "<<entry.GetTextMessage()<<std::endl;
+    std::cout<<"And this idiot said : "<<entry.GetTextMessage()<<std::endl;*/
 }
