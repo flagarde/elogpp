@@ -57,9 +57,13 @@ void ElogEntry::ParseReceivedCommand(std::string entry)
 {
     std::string Delimiter="========================================";
     std::size_t found=entry.find(Delimiter);    
+    if(found==std::string::npos) return;
     if(found+Delimiter.size()!=std::string::npos) message.SetMessage(SupressSpaces(entry.substr(found+Delimiter.size())));
-    if(found!=std::string::npos)entry.erase(found);
-    ParseHeader(entry);
+    if(found!=std::string::npos)
+    {
+        entry.erase(found);
+        ParseHeader(entry);
+    }
 }
         
 ElogEntry& ElogEntry::ReceiveEntry(int id)
