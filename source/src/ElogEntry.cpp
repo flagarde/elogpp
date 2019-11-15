@@ -13,17 +13,18 @@ bool ElogEntry::Sended(std::string message)
 
 std::string ElogEntry::SupressSpaces(std::string part)
 {
-    if(part==" ") return "";
+    if(part==""|| part==" "||part==" \n"||part=="\n ") return "";
+    part=std::string(part.rbegin(),part.rend());
     while(!isgraph(part[0]))
     {
-        part=part.erase(0,1);
+        if(part.size()==1) return "";
+        else part=part.erase(0,1);
     }
     part=std::string(part.rbegin(),part.rend());
     while(!isgraph(part[0]))
     {
         part=part.erase(0,1);
     }
-    part=std::string(part.rbegin(),part.rend());
     return std::move(part);
 }
     
@@ -55,10 +56,8 @@ void ElogEntry::ParseHeader(std::string header)
 void ElogEntry::ParseReceivedCommand(std::string entry)
 {
     std::string Delimiter="========================================";
-    std::size_t found=entry.find(Delimiter);
-    std::size_t BeginMessage=found+Delimiter.size();
-    message.SetMessage(SupressSpaces(entry.substr(BeginMessage)));
-    entry.erase(found);
+    std::size_t found=entry.find(Delimiter);    
+    if(found+Delimiter.size()!=std::string::npos) message.SetMessage(SupressSpaces(entry.substr(found+Delimiter.size())));
     if(found!=std::string::npos)entry.erase(found);
     ParseHeader(entry);
 }
@@ -79,6 +78,7 @@ ElogEntry& ElogEntry::ReceiveEntry(std::string id)
 {
     Command.AddToCommand(id,Command.SetAsDownload());
     Command.BuildCommand();
+    //Command.Print();
     ParseReceivedCommand(ExecuteCommand());
     return *this;
 }
