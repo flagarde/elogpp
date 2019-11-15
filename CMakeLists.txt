@@ -12,7 +12,7 @@ PROJECT(elogpp VERSION 1.1.0.0 DESCRIPTION "CPP wrapper for elog" HOMEPAGE_URL "
 
 # c++ standard
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}/bin" CACHE PATH "Install Prefix" FORCE)
@@ -25,7 +25,7 @@ set( jsoncpp_version "master" )
 OPTION(JSONCPP_WITH_TESTS "Compile and (for jsoncpp_check) run JsonCpp test executables" OFF)
 OPTION(JSONCPP_WITH_POST_BUILD_UNITTEST "Automatically run unit-tests as a post build step" OFF)
 OPTION(JSONCPP_WITH_PKGCONFIG_SUPPORT "Generate and install .pc files" OFF)
-OPTION(JSONCPP_WITH_CMAKE_PACKAGE "Generate and install cmake package files" ON)
+OPTION(JSONCPP_WITH_CMAKE_PACKAGE "Generate and install cmake package files" OFF)
 # ----- jsoncpp package -----
 ExternalProject_Add( 
                     jsoncpp
