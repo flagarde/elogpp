@@ -4,11 +4,11 @@
 #            @author Lagarde François, SJTU            #
 #                                                      #
 ########################################################
-cmake_minimum_required(VERSION 3.9..3.15 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.9...3.16.1 FATAL_ERROR)
 
 
 # Name Project
-PROJECT(elogpp VERSION 1.1.0.0 DESCRIPTION "CPP wrapper for elog" HOMEPAGE_URL "https://rpclab.github.io/elogpp" LANGUAGES CXX)
+project(elogpp VERSION "1.1.0.0" DESCRIPTION "CPP wrapper for elog" HOMEPAGE_URL "https://rpclab.github.io/elogpp" LANGUAGES CXX)
 
 # c++ standard
 set(CMAKE_CXX_STANDARD 17)

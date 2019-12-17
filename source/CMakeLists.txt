@@ -27,7 +27,8 @@ set(ELOGCPP_SOURCES
 add_library(elogcpp STATIC ${ELOGCPP_SOURCES} ${ELOGCPP_PUBLIC_HEADERS})
 add_dependencies(elogcpp jsoncpp pstreams)
 target_include_directories(elogcpp  PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/" PRIVATE "${CMAKE_INSTALL_PREFIX}/include/")
-link_libraries(elogcpp jsoncpp)
+#link_libraries(elogcpp jsoncpp)
+target_link_libraries(elogcpp INTERFACE jsoncpp)
 install(FILES ${ELOGCPP_PUBLIC_HEADERS} DESTINATION "${CMAKE_INSTALL_PREFIX}/include/elogpp")
 
 #TARGET_LINK_LIBRARIES(elogcpp jsoncpp)
