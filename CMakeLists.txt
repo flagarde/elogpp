@@ -16,6 +16,11 @@ if(CMAKE_CXX_STANDARD EQUAL "98")
     message(FATAL_ERROR "CMAKE_CXX_STANDARD:STRING=98 is not supported.")
 endif()
 
+set(ELOG_PATH $CACHE{ELOG_PATH})
+if(NOT ${ELOG_PATH} STREQUAL "")
+  message(STATUS "Elog path : ${ELOG_PATH}")
+endif()
+
 #####
 ##  Set the default target properties
 if(NOT CMAKE_CXX_STANDARD)
@@ -95,9 +100,9 @@ if(COMPILE_ELOG)
                       INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
                       )
   endif()
-  set(ELOG_PATH "${PROJECT_SOURCE_DIR}/bin")
+  set(ELOG_PATH "${PROJECT_SOURCE_DIR}/bin/")
 endif()
 
-configure_file("${PROJECT_SOURCE_DIR}/config/Elog.json" "${CMAKE_INSTALL_PREFIX}/config/Elog.json" COPYONLY)
+configure_file("${PROJECT_SOURCE_DIR}/confs/Elog.json" "${CMAKE_INSTALL_PREFIX}/confs/Elog_DEMO.json" COPYONLY)
 
 add_subdirectory(source)

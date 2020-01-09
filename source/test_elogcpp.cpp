@@ -14,7 +14,7 @@ int main()
     std::cout<<"*****************************************************"<<std::endl;
     std::cout<<"* 1) Last entry is :                                *"<<std::endl;
     std::cout<<"*****************************************************"<<std::endl;
-    entry.User("DAQ").To("NAS","Runs").ReceiveEntry("last");
+    entry.User("DAQ").To("NAS","test").ReceiveEntry("last");
     entry.Print();
     
     /*std::cout<<"*****************************************************"<<std::endl;
