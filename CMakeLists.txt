@@ -67,13 +67,12 @@ if (NOT TARGET pstreams)
                       GIT_PROGRESS TRUE
                       GIT_SHALLOW TRUE
                       CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} -DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}
-                      CONFIGURE_COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/pstreams/pstream.h ${CMAKE_INSTALL_PREFIX}/include/pstreams/pstream.h
-                      BUILD_COMMAND ""
-                      INSTALL_COMMAND ""
                       PREFIX ${CMAKE_CURRENT_BINARY_DIR}/pstreams-prefix
                       SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/pstreams
                       INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
                       )
 endif()
+
+configure_file("${PROJECT_SOURCE_DIR}/config/Elog.json" "${CMAKE_INSTALL_PREFIX}/config/Elog.json" COPYONLY)
 
 add_subdirectory(source)

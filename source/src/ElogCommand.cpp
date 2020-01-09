@@ -4,7 +4,7 @@
 #include <map>
 #include <fstream>
 #include <streambuf>
-#include "pstreams/pstream.h"
+#include "pstream.h"
 
 namespace elogpp
 {
