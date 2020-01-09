@@ -103,7 +103,7 @@ void ElogCommand::AddToCommand(ElogMessage& mess)
 
 void ElogCommand::BuildCommand()
 {
-    Command=Elog+ServerPart+UserPart+ReplyEditDownload+OptionsPart+MessagePart;
+    Command=Path+Elog+ServerPart+UserPart+ReplyEditDownload+OptionsPart+MessagePart;
 }
 
 void ElogCommand::AddToCommand(ElogUser user)

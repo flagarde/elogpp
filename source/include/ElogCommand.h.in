@@ -24,6 +24,7 @@ public:
     Type SetAsOption();
     void ResetReplyEditDownload();
 private: 
+    static inline const std::string Path = "@ELOG_PATH@";
     static inline const std::string Elog = "elog";
     //Server Stufs
     static inline const std::string HostParam = " -h ";

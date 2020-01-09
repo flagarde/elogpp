@@ -1,7 +1,10 @@
-option(BUILD_TEST "Build the test executable" ON)
+configure_file(
+  "include/ElogCommand.h.in"
+  "${GENERATED_HEADER_PATH}/ElogCommand.h"
+)
 
 set(ELOGCPP_PUBLIC_HEADERS 
-	include/ElogCommand.h  
+	"${GENERATED_HEADER_PATH}/ElogCommand.h"  
 	include/ElogConfig.h  
 	include/ElogEntry.h  
 	include/ElogManager.h  
@@ -24,7 +27,7 @@ set(ELOGCPP_SOURCES
 
 add_library(elogcpp STATIC ${ELOGCPP_SOURCES})
 add_dependencies(elogcpp jsoncpp pstreams)
-target_include_directories(elogcpp  PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include/" PRIVATE "${CMAKE_INSTALL_PREFIX}/include/pstreams")
+target_include_directories(elogcpp  PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include/" PRIVATE "${CMAKE_INSTALL_PREFIX}/include/pstreams" PRIVATE ${GENERATED_HEADER_PATH})
 target_link_libraries(elogcpp INTERFACE jsoncpp)
 install(FILES ${ELOGCPP_PUBLIC_HEADERS} DESTINATION "${CMAKE_INSTALL_PREFIX}/include/elogpp")
 
@@ -32,8 +35,7 @@ install(TARGETS elogcpp ARCHIVE DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" RUNTIM
 
 if(BUILD_TEST)
     add_executable(test_elogcpp test_elogcpp.cpp)
-    target_include_directories(test_elogcpp  PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include/")
+    target_include_directories(test_elogcpp  PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include/" PRIVATE ${GENERATED_HEADER_PATH})
     target_link_libraries(test_elogcpp elogcpp)
     install(TARGETS test_elogcpp  ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX} RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX} LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX})
 endif()
-
