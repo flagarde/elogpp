@@ -103,6 +103,4 @@ if(COMPILE_ELOG)
   set(ELOG_PATH "${PROJECT_SOURCE_DIR}/bin/")
 endif()
 
-configure_file("${PROJECT_SOURCE_DIR}/confs/Elog.json" "${CMAKE_INSTALL_PREFIX}/confs/Elog_DEMO.json" COPYONLY)
-
 add_subdirectory(source)
