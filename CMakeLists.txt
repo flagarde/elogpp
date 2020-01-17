@@ -83,24 +83,6 @@ if (NOT TARGET pstreams)
                       )
 endif()
 
-if(COMPILE_ELOG)
-  if (NOT TARGET elog)
-    set( elog_repository "https://github.com/RPClab/elog" )
-    set( elog_version "master" )
-    # ----- elog package -----
-    ExternalProject_Add( 
-                      elog
-                      GIT_REPOSITORY ${elog_repository}
-                      GIT_TAG ${elog_version}
-                      GIT_PROGRESS TRUE
-                      GIT_SHALLOW TRUE
-                      CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${PROJECT_SOURCE_DIR} -DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD} -DELOGDIR=${PROJECT_SOURCE_DIR} -DBUILD_DAEMON=OFF
-                      PREFIX ${CMAKE_CURRENT_BINARY_DIR}/elog-prefix
-                      SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/elog
-                      INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
-                      )
-  endif()
-  set(ELOG_PATH "${PROJECT_SOURCE_DIR}/bin/")
-endif()
+configure_file("${PROJECT_SOURCE_DIR}/confs/Elog.json" "${CMAKE_INSTALL_PREFIX}/confs/Elog_DEMO.json" COPYONLY)
 
 add_subdirectory(source)

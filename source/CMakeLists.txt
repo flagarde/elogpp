@@ -39,3 +39,7 @@ if(BUILD_TEST)
     target_link_libraries(test_elogcpp elogcpp)
     install(TARGETS test_elogcpp  ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX} RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX} LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX})
 endif()
+
+if(COMPILE_ELOG)
+  add_subdirectory(elog)
+endif()
