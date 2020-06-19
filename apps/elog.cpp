@@ -112,6 +112,14 @@ void checkResponse(const std::string& response)
   else std::cout<<"Error transmitting message\n";
 }
 
+enum Type
+{
+  Edit,
+  Download,
+  Reply,
+  New
+};
+
 #include <fcntl.h>
 #include <cstring>
 #include <ctime>
@@ -304,7 +312,7 @@ void convert_crlf(char *buffer, int bufsize)
 
 /*------------------------------------------------------------------*/
 
-std::string retrieve_elog(elogpp::Connector& connector, char *subdir,  char *experiment,char *uname, char *upwd, int message_id,char attrib_name[maxNAttributes][NAME_LENGTH], char attrib[maxNAttributes][NAME_LENGTH], char *text)
+std::string retrieve_elog(elogpp::Connector& connector,char *subdir,  char *experiment,char *uname, char *upwd, int message_id,char attrib_name[maxNAttributes][NAME_LENGTH], char attrib[maxNAttributes][NAME_LENGTH], char *text)
 {
   int index;
   char str[256], encrypted_passwd[256];
@@ -396,7 +404,7 @@ std::string retrieve_elog(elogpp::Connector& connector, char *subdir,  char *exp
 }
 
 /*------------------------------------------------------------------*/
-int submit_elog(elogpp::Connector& connector,char *subdir, char *experiment,char *uname, char *upwd,int reply,int quote_on_reply,int edit,int download,int suppress,int encoding,char attrib_name[maxNAttributes][NAME_LENGTH],char attrib[maxNAttributes][NAME_LENGTH],int n_attr,char *text, char afilename[maxAttachments][256],char *buffer[maxAttachments], int buffer_size[maxAttachments])
+int submit_elog(elogpp::Connector& connector,const Type& type,char *subdir, char *experiment,char *uname, char *upwd,const int& ID,int quote_on_reply,int suppress,int encoding,char attrib_name[maxNAttributes][NAME_LENGTH],char attrib[maxNAttributes][NAME_LENGTH],int n_attr,char *text, char afilename[maxAttachments][256],char *buffer[maxAttachments], int buffer_size[maxAttachments])
 {
   int status, sock, i, n, header_length, content_length, index;
   char host_name[256], boundary[80], str[80], encrypted_passwd[256], *p;
@@ -404,10 +412,9 @@ int submit_elog(elogpp::Connector& connector,char *subdir, char *experiment,char
   char request[100000];
   std::string response{""};
   char old_text[TEXT_SIZE];
-  if (edit || download) 
+  if(type!=New) response = retrieve_elog(connector,subdir,experiment, uname, upwd, ID,old_attrib_name, old_attrib, old_text);
+  if (type==Edit || type==Download) 
   {
-    if (edit) response = retrieve_elog(connector,subdir,experiment, uname, upwd, edit,old_attrib_name, old_attrib, old_text);
-    else response = retrieve_elog(connector,subdir,  experiment, uname, upwd, download, old_attrib_name, old_attrib, old_text);
     /* update attributes */
     for (index = 0; index < n_attr; index++) 
     {
@@ -425,7 +432,7 @@ int submit_elog(elogpp::Connector& connector,char *subdir, char *experiment,char
     if (text[0] == 0) strlcpy(text, old_text, TEXT_SIZE);
   }
    
-  if (download) 
+  if (type==Download) 
   {
     std::cout<<"Download"<<std::endl;
     if (strstr(response.c_str(), "$@MID@$:")) printf("%s", strstr(response.c_str(), "$@MID@$:"));
@@ -433,10 +440,8 @@ int submit_elog(elogpp::Connector& connector,char *subdir, char *experiment,char
     return 1;
   }
 
-  if (reply)
+  if (type==Reply)
   {
-    std::cout<<"Reply"<<std::endl;
-    response = retrieve_elog(connector,subdir,  experiment, uname, upwd, reply, old_attrib_name, old_attrib, old_text);
     /* update attributes */
     for (index = 0; index < n_attr; index++) 
     {
@@ -541,11 +546,11 @@ int submit_elog(elogpp::Connector& connector,char *subdir, char *experiment,char
 
    if (experiment[0]) sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"exp\"\r\n\r\n%s\r\n", boundary, experiment);
 
-   if (reply) sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"reply_to\"\r\n\r\n%d\r\n", boundary, reply);
+   if (type==Reply) sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"reply_to\"\r\n\r\n%d\r\n", boundary, ID);
 
-   if (edit) 
+   if (type==Edit) 
    {
-      sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"edit_id\"\r\n\r\n%d\r\n", boundary, edit);
+      sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"edit_id\"\r\n\r\n%d\r\n", boundary, ID);
       sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"skiplock\"\r\n\r\n1\r\n", boundary);
    }
 
@@ -623,17 +628,19 @@ int submit_elog(elogpp::Connector& connector,char *subdir, char *experiment,char
 int main(int argc, char *argv[])
 {
   elogpp::Connector connector;
+  Type type{New};
+  int ID{0};
    char str[1000], uname[80], upwd[80];
    char  logbook[32], textfile[256], subdir[256];
    char *buffer[maxAttachments], attachment[maxAttachments][256];
    int att_size[maxAttachments];
-   int i, n, fh, n_att, n_attr,  reply, quote_on_reply, edit, download, encoding, suppress, size, 
+   int i, n, fh, n_att, n_attr, quote_on_reply, encoding, suppress, size, 
        text_flag;
    char attr_name[maxNAttributes][NAME_LENGTH], attrib[maxNAttributes][NAME_LENGTH];
 char text[TEXT_SIZE];
    text[0] = textfile[0] = uname[0] = upwd[0] = suppress = quote_on_reply = 0;
     logbook[0] = subdir[0] = 0;
-   n_att = n_attr = reply = edit = download = encoding = 0;
+   n_att = n_attr = encoding = 0;
    text_flag = 0;
 
    for (i = 0; i < maxAttachments; i++) {
@@ -682,14 +689,20 @@ char text[TEXT_SIZE];
             } else if (argv[i][1] == 'f')
                strcpy(attachment[n_att++], argv[++i]);
             else if (argv[i][1] == 'r')
-               reply = atoi(argv[++i]);
+            {
+              type=Reply;
+              ID = atoi(argv[++i]);
+            }
             else if (argv[i][1] == 'e')
-               edit = atoi(argv[++i]);
-            else if (argv[i][1] == 'w') {
-               if (argv[i+1][0] == 'l')
-                  download = -1;
-               else
-                  download = atoi(argv[++i]);
+            {
+              type=Edit;
+              ID = atoi(argv[++i]);
+            }
+            else if (argv[i][1] == 'w') 
+            {
+               type=Download;
+               if (argv[i+1][0] == 'l')ID = -1;
+               else ID = atoi(argv[++i]);
             } else if (argv[i][1] == 'n')
                encoding = atoi(argv[++i]);
             else if (argv[i][1] == 'm') {
@@ -708,11 +721,6 @@ char text[TEXT_SIZE];
 
    if (logbook[0] == 0) {
       printf("Please specify logbook with the \"-l\" flag.\n");
-      return 1;
-   }
-
-   if (n_attr == 0 && !edit && !reply && !download) {
-      printf("Please specify attribute(s) with the \"-a\" flag.\n");
       return 1;
    }
 
@@ -742,7 +750,7 @@ char text[TEXT_SIZE];
       close(fh);
    }
 
-   if (text_flag == 0 && !edit && !download) 
+   if (text_flag == 0 && (type==New || type==Edit)) 
    {
       /* read from stdin */
       n = 0;
@@ -782,7 +790,7 @@ char text[TEXT_SIZE];
    }
 
    /* now submit message */
-   submit_elog(connector, subdir, logbook,uname, upwd, reply, quote_on_reply, edit, download, suppress, encoding, attr_name, attrib, n_attr, text,attachment, buffer, att_size);
+   submit_elog(connector,type, subdir, logbook,uname, upwd, ID, quote_on_reply, suppress, encoding, attr_name, attrib, n_attr, text,attachment, buffer, att_size);
    for (i = 0; i < maxAttachments; i++)if (buffer[i])free(buffer[i]);
    return 0;
 }
