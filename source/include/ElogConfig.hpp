@@ -1,7 +1,6 @@
-#ifndef ElogConfig_h
-#define ElogConfig_h
-#include "ElogServer.h"
-#include "ElogUser.h"
+#pragma once
+#include "ElogServer.hpp"
+#include "ElogUser.hpp"
 #include "json/json.h"
 #include <map>
 #include <string>
@@ -27,4 +26,3 @@ private :
     void ExtractElogUsersInfos(Json::Value root);
 };
 }
-#endif

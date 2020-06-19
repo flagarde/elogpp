@@ -1,10 +1,9 @@
-#ifndef ElogManager_h
-#define ElogManager_h
+#pragma once
 #include <string>
 #include <map>
-#include "ElogCommand.h"
-#include "ElogConfig.h"
-#include "ElogEntry.h"
+#include "ElogCommand.hpp"
+#include "ElogConfig.hpp"
+#include "ElogEntry.hpp"
 
 namespace elogpp
 {
@@ -25,4 +24,3 @@ private:
     ElogCommand Command;
 };
 }
-#endif

@@ -1,6 +1,5 @@
-#ifndef ElogServer_h
-#define ElogServer_h
-#include "Logbook.h"
+#pragma once
+#include "Logbook.hpp"
 #include <string>
 #include <map>
 
@@ -38,4 +37,3 @@ private:
     std::map<std::string,Logbook>Logbooks;
 };
 }
-#endif

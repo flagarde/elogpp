@@ -1,11 +1,11 @@
-#include "ElogManager.h"
+#include "ElogManager.hpp"
 #include <map>
 #include <string>
 #include <memory>
 #include <iostream>
-#include "ElogServer.h"
-#include "ElogUser.h"
-#include "ElogEntry.h"
+#include "ElogServer.hpp"
+#include "ElogUser.hpp"
+#include "ElogEntry.hpp"
 
 namespace elogpp
 {

@@ -20,7 +20,7 @@
   * 
   * 
   *   $Id$ */
- 
+#include "Crypt.hpp"
 #include <cstdint>
 #include <cstring>
 
@@ -38,6 +38,9 @@
  #endif
  
 #include<string>
+ 
+namespace elogpp
+{
  
  /* Structure to save state of computation between the single steps.  */
  struct sha256_ctx {
@@ -326,8 +329,8 @@ static char *sha256_crypt_r(const char *key, const char *salt, char *buffer, int
    size_t key_len;
    size_t cnt;
    char *cp;
-   char *copied_key = NULL;
-   char *copied_salt = NULL;
+   char *copied_key = nullptr;
+   char *copied_salt = nullptr;
    char *p_bytes;
    char *s_bytes;
    /* Default number of rounds.  */
@@ -529,7 +532,7 @@ static char *sha256_crypt_r(const char *key, const char *salt, char *buffer, int
    b64_from_24bit(0, alt_result[31], alt_result[30], 3);
    if (buflen <= 0) {
       errno = ERANGE;
-      buffer = NULL;
+      buffer = nullptr;
    } else
       *cp = '\0';               /* Terminate the string.  */
 
@@ -544,9 +547,9 @@ static char *sha256_crypt_r(const char *key, const char *salt, char *buffer, int
    memset(s_bytes, '\0', salt_len);
    memset(&ctx, '\0', sizeof(ctx));
    memset(&alt_ctx, '\0', sizeof(alt_ctx));
-   if (copied_key != NULL)
+   if (copied_key != nullptr)
       memset(copied_key, '\0', key_len);
-   if (copied_salt != NULL)
+   if (copied_salt != nullptr)
       memset(copied_salt, '\0', salt_len);
 
    return buffer;
@@ -568,12 +571,14 @@ char *sha256_crypt(const char *key, const char *salt)
 
    if (buflen < needed) {
       char *new_buffer = (char *) realloc(buffer, needed);
-      if (new_buffer == NULL)
-         return NULL;
+      if (new_buffer == nullptr)
+         return nullptr;
 
       buffer = new_buffer;
       buflen = needed;
    }
 
    return sha256_crypt_r(key, salt, buffer, buflen);
+}
+
 }

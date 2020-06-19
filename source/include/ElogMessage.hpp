@@ -1,5 +1,4 @@
-#ifndef ElogMessage_h
-#define ElogMessage_h
+#pragma once
 #include <vector>
 #include <string>
 #include <map>
@@ -36,4 +35,3 @@ private:
     std::string FileMessage{""};
 };
 }
-#endif

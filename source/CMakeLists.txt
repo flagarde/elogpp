@@ -1,17 +1,19 @@
 configure_file(
-  "include/ElogCommand.h.in"
-  "${GENERATED_HEADER_PATH}/ElogCommand.h"
+  "include/ElogCommand.hpp.in"
+  "${GENERATED_HEADER_PATH}/ElogCommand.hpp"
 )
 
 set(ELOGCPP_PUBLIC_HEADERS 
-	"${GENERATED_HEADER_PATH}/ElogCommand.h"  
-	include/ElogConfig.h  
-	include/ElogEntry.h  
-	include/ElogManager.h  
-	include/ElogMessage.h  
-	include/ElogServer.h  
-	include/ElogUser.h  
-	include/Logbook.h 
+	"${GENERATED_HEADER_PATH}/ElogCommand.hpp"  
+	include/ElogConfig.hpp  
+	include/ElogEntry.hpp  
+	include/ElogManager.hpp  
+	include/ElogMessage.hpp  
+	include/ElogServer.hpp  
+	include/ElogUser.hpp 
+	include/Logbook.hpp
+	include/Connector.hpp
+	include/Crypt.hpp
 )
 
 set(ELOGCPP_SOURCES 
@@ -23,23 +25,23 @@ set(ELOGCPP_SOURCES
 	src/ElogServer.cpp  
 	src/ElogUser.cpp  
 	src/LogBook.cpp
+	src/Crypt.cpp
 )
 
-add_library(elogcpp STATIC ${ELOGCPP_SOURCES})
-add_dependencies(elogcpp jsoncpp pstreams)
-target_include_directories(elogcpp  PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include/" PRIVATE "${CMAKE_INSTALL_PREFIX}/include/pstreams" PRIVATE ${GENERATED_HEADER_PATH})
-target_link_libraries(elogcpp INTERFACE jsoncpp)
+add_library(Connector STATIC src/Connector.cpp)
+find_package(OpenSSL QUIET) 
+if(OpenSSL_FOUND)
+    target_include_directories(Connector PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/")
+    target_compile_definitions(Connector PRIVATE HAVE_SSL)
+    target_link_libraries(Connector PRIVATE  OpenSSL::Crypto PRIVATE OpenSSL::SSL)
+    message(STATUS "Using OpenSSL ${OPENSSL_VERSION}")
+endif()
+
+
+add_library(elogpp STATIC ${ELOGCPP_SOURCES})
+add_dependencies(elogpp jsoncpp pstreams Connector)
+target_include_directories(elogpp  PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/" PRIVATE "${CMAKE_INSTALL_PREFIX}/include/pstreams" PRIVATE ${GENERATED_HEADER_PATH})
+target_link_libraries(elogpp INTERFACE jsoncpp PUBLIC Connector)
 install(FILES ${ELOGCPP_PUBLIC_HEADERS} DESTINATION "${CMAKE_INSTALL_PREFIX}/include/elogpp")
 
-install(TARGETS elogcpp ARCHIVE DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" LIBRARY DESTINATION "${CMAKE_INSTALL_PREFIX}/lib")
-
-if(BUILD_TEST)
-    add_executable(test_elogcpp test_elogcpp.cpp)
-    target_include_directories(test_elogcpp  PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include/" PRIVATE ${GENERATED_HEADER_PATH})
-    target_link_libraries(test_elogcpp elogcpp)
-    install(TARGETS test_elogcpp  ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX} RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX} LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX})
-endif()
-
-if(COMPILE_ELOG)
-  add_subdirectory(elog)
-endif()
+install(TARGETS elogpp ARCHIVE DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" LIBRARY DESTINATION "${CMAKE_INSTALL_PREFIX}/lib")

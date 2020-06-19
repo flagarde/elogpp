@@ -1,5 +1,4 @@
-#ifndef Logbook_h
-#define Logbook_h
+#pragma once
 #include <string>
 
 namespace elogpp
@@ -17,4 +16,3 @@ private:
     std::string Name{""};
 };
 }
-#endif

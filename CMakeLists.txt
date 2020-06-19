@@ -4,7 +4,7 @@
 #            @author Lagarde François, SJTU            #
 #                                                      #
 ########################################################
-cmake_minimum_required(VERSION 3.9...3.16.1 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.10...3.16.1 FATAL_ERROR)
 
 project(elogpp VERSION "1.1.0.0" DESCRIPTION "CPP wrapper for elog" HOMEPAGE_URL "https://rpclab.github.io/elogpp" LANGUAGES CXX)
 
@@ -63,6 +63,7 @@ if (NOT TARGET jsoncpp)
                       PREFIX ${CMAKE_CURRENT_BINARY_DIR}/jsoncpp-prefix
                       SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/jsoncpp
                       INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
+                      UPDATE_DISCONNECTED TRUE
                       )
 endif()
 
@@ -80,9 +81,18 @@ if (NOT TARGET pstreams)
                       PREFIX ${CMAKE_CURRENT_BINARY_DIR}/pstreams-prefix
                       SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/pstreams
                       INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
+                      UPDATE_DISCONNECTED TRUE
                       )
 endif()
 
 configure_file("${PROJECT_SOURCE_DIR}/confs/Elog.json" "${CMAKE_INSTALL_PREFIX}/confs/Elog_DEMO.json" COPYONLY)
 
 add_subdirectory(source)
+
+if(COMPILE_ELOG)
+  add_subdirectory(apps)
+endif()
+
+if(BUILD_TEST)
+  add_subdirectory(tests)
+endif()

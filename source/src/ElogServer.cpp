@@ -1,7 +1,7 @@
-#include "ElogServer.h"
+#include "ElogServer.hpp"
 #include <string>
 #include <iostream>
-#include "Logbook.h"
+#include "Logbook.hpp"
 
 namespace elogpp
 {

@@ -1,9 +1,8 @@
-#ifndef ElogCommand_h
-#define ElogCommand_h
+#pragma once
 #include <string>
-#include "ElogServer.h"
-#include "ElogUser.h"
-#include "ElogMessage.h"
+#include "ElogServer.hpp"
+#include "ElogUser.hpp"
+#include "ElogMessage.hpp"
 
 namespace elogpp
 {
@@ -60,4 +59,3 @@ private:
     std::string Command{""};
 };
 }
-#endif

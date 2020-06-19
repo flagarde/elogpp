@@ -27,6 +27,8 @@
 #include <iostream>
 #include <algorithm>
 
+#include "Connector.hpp"
+#include "Crypt.hpp"
 /* ELOG identification */
 constexpr const char* elogid{"elogd 3.1.4"};
 constexpr int maxAttachments{50};
@@ -135,210 +137,13 @@ enum Type
 #include <windows.h>
 #include <io.h>
 #else
-#include <netdb.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <sys/time.h>
 #include <unistd.h>
-#include <signal.h>
-#define closesocket(s) ::close(s)
 #ifndef O_BINARY
 #define O_BINARY 0
 #endif
 #endif
 
-class Elog
-{
-public:
-  Elog()
-  {
-    #if defined( _MSC_VER )
-    {
-      WSADATA WSAData;
-      /* Start windows sockets */
-      if (WSAStartup(MAKEWORD(1, 1), &WSAData) != 0) return -1;
-    }
-    #endif
-  }
-  void setVerbose(const bool& verbose)
-  {
-    m_Verbose=verbose;
-  }
-  void setHostname(const std::string& hostname)
-  {
-    m_Hostname=hostname;
-  }
-  std::string getHostname()
-  {
-    return m_Hostname;
-  }
-  void setPort(const unsigned int& port)
-  {
-    m_Port=port;
-  }
-  unsigned int getPort()
-  {
-    return m_Port;
-  }
-  void setSSL(const bool& ssl)
-  {
-    m_SSL=ssl;
-    #ifndef HAVE_SSL
-    if(ssl)
-    {
-      std::cout<<"SLL support not compiled into this program\n";
-      throw 1;
-    }
-    #endif
-  }
-  int connect()
-  {
-    if(m_Hostname.empty())
-    {
-      std::cout<<"Please specify hostname.\n";
-      return -1;
-    }
-    /* create socket */
-    if((m_Sock = socket(AF_INET, SOCK_STREAM, 0)) == -1) 
-    {
-      std::cout<<"cannot create socket\n";
-      return -1;
-    }
-    /* compose remote address */
-    struct sockaddr_in bind_addr;
-    memset(&bind_addr, 0, sizeof(bind_addr));
-    bind_addr.sin_family = AF_INET;
-    bind_addr.sin_addr.s_addr = 0;
-    bind_addr.sin_port = htons((unsigned short) m_Port);
-    
-    struct hostent* phe = gethostbyname(m_Hostname.c_str());
-    if(phe == nullptr) 
-    {
-      std::cout<<"cannot get host name\n";
-      return -1;
-    }
-    memcpy((char *) &(bind_addr.sin_addr), phe->h_addr, phe->h_length);
-    /* connect to server */
-    int status = ::connect(m_Sock, (const sockaddr*) &bind_addr, sizeof(bind_addr));
-    if (status != 0) 
-    {
-      std::cout<<"Cannot connect to host "<<m_Hostname<<", port "<<m_Port<<"\n";
-      return -1;
-    }
-    if(m_Verbose) std::cout<<"Successfully connected to host "<<m_Hostname<<", port "<<m_Port<<"\n";
-    #ifdef HAVE_SSL
-    if(m_SSL && ssl_connect() < 0) 
-    {
-      std::cout<<"elogd server does not run SSL protocol\n";
-      return -1;
-    }
-    #endif
-    return 0;
-  }
-  int ssl_connect()
-  {
-    #ifdef HAVE_SSL
-    SSL_library_init();
-    SSL_load_error_strings();
-    #if OPENSSL_VERSION_NUMBER > 0x1010000fL
-    SSL_METHOD* meth{(SSL_METHOD *) TLS_method()};
-    #else
-    SSL_METHOD* meth{(SSL_METHOD *) TLSv1_2_method()};
-    #endif
-    SSL_CTX* ctx{SSL_CTX_new(meth)};
-    m_SSL_con={SSL_new(ctx)};
-    SSL_set_fd(m_SSL_con, m_Sock);
-    if(SSL_connect(m_SSL_con) <= 0) return -1;
-    X509* cert{SSL_get_peer_certificate(m_SSL_con)};
-    if(cert == nullptr) return -1;
-    long int i{SSL_get_verify_result(m_SSL_con)};
-    if(i != X509_V_OK) std::cout<<"Possibly invalid certificate, continue on your own risk!\n";
-    #endif
-    return 0;
-  }
-  void sendRequest(const std::string& request,std::size_t length=0)
-  {
-    if(length==0) length=strlen(request.c_str());
-    #ifdef HAVE_SSL
-    if(m_SSL)
-      SSL_write(m_SSL_con,request.c_str(),length);
-    else
-      #endif
-      send(m_Sock,request.c_str(),length,0);
-    if(m_Verbose) 
-    {
-      std::cout<<"Request sent to host:\n";
-      puts(request.c_str());
-    }
-  }
-  std::string receiveRespond()
-  {
-    char response[100000];
-    memset(response, 0, sizeof(response));
-    #ifdef HAVE_SSL
-    int i{0};
-    if(m_SSL)
-      i=SSL_read(m_SSL_con,response, sizeof(response) - 1);
-    else
-      #endif
-      i=recv(m_Sock, response, sizeof(response) - 1, 0);
-    if(i < 0)
-    {
-      std::cout<<"Cannot receive response"<<std::endl;
-      throw -1;
-    }
-    /* discard remainder of response */
-    int n{i};
-    while (i > 0) 
-    {
-      #ifdef HAVE_SSL
-      if(m_SSL)
-        i = SSL_read(m_SSL_con, response + n, sizeof(response) - 1 - n);
-      else
-        #endif
-        i = recv(m_Sock, response + n, sizeof(response) - 1 - n, 0);
-      if(i > 0)n += i;
-    }
-    response[n] = 0;
-    if(m_Verbose)
-    {
-      std::cout<<"Response received:\n";
-      puts(response);
-    }
-    return std::string(response);
-  }
-  void close()
-  {
-    #ifdef HAVE_SSL
-    if(m_SSL) 
-    {
-      SSL_shutdown(m_SSL_con);
-      SSL_free(m_SSL_con);
-    }
-    #endif
-    closesocket(m_Sock);
-  }
-  ~Elog()
-  {
-    #ifdef HAVE_SSL
-    if(m_SSL) 
-    {
-      SSL_shutdown(m_SSL_con);
-      SSL_free(m_SSL_con);
-    }
-    #endif
-    closesocket(m_Sock);
-  }
-private:
-  std::string m_Hostname{""};
-  unsigned int m_Port{80};
-  bool m_Verbose{false};
-  int m_Sock{0};
-  #ifdef HAVE_SSL
-  SSL* m_SSL_con{nullptr};
-  #endif
-  bool m_SSL{false};
-};
+
 
 
 
@@ -349,7 +154,6 @@ private:
 
 #define TEXT_SIZE    100000
 
-int verbose;
 
 char text[TEXT_SIZE], old_text[TEXT_SIZE], new_text[TEXT_SIZE];
 
@@ -432,11 +236,10 @@ int equal_ustring(const std::string& str1,const std::string& str2)
   else return false;
 }
 
-char *sha256_crypt(const char *key, const char *salt);
 
 void do_crypt(char *s, char *d, int size)
 {
-  strlcpy(d, sha256_crypt(s, "$5$") + 4, size);
+  strlcpy(d, elogpp::sha256_crypt(s, "$5$") + 4, size);
 }
 
 /*-------------------------------------------------------------------*/
@@ -491,7 +294,7 @@ void add_crlf(char *buffer, int bufsize)
   
   /* convert \n -> \r\n */
   p = buffer;
-  while ((p = strstr(p, "\n")) != NULL) {
+  while ((p = strstr(p, "\n")) != nullptr) {
     
     if (p > buffer && *(p - 1) == '\r') {
       p++;
@@ -520,7 +323,7 @@ void convert_crlf(char *buffer, int bufsize)
   
   /* convert '\n' -> \r\n */
   p = buffer;
-  while ((p = strstr(p, "\\n")) != NULL) {
+  while ((p = strstr(p, "\\n")) != nullptr) {
     
     if (p - buffer < bufsize - 2) {
       *(p++) = '\r';
@@ -533,7 +336,7 @@ void convert_crlf(char *buffer, int bufsize)
 
 char *content;
 
-std::string retrieve_elog(Elog& elog, char *subdir, char *experiment,
+std::string retrieve_elog(elogpp::Connector& connector, char *subdir, char *experiment,
                   char *uname, char *upwd, int message_id,
                   char attrib_name[maxNAttributes][NAME_LENGTH], char attrib[maxNAttributes][NAME_LENGTH], char *text)
 /********************************************************************\
@@ -564,7 +367,7 @@ std::string retrieve_elog(Elog& elog, char *subdir, char *experiment,
   char str[256], encrypted_passwd[256], *ph, *ps;
     
     /* compose request */
-    strcpy(request, "GET /");
+    strcpy(request, "/");
   strlcpy(str, experiment, sizeof(str));
   url_encode(str, sizeof(str));
   if (subdir[0] && experiment[0])
@@ -602,16 +405,20 @@ std::string retrieve_elog(Elog& elog, char *subdir, char *experiment,
   
   strcat(request, "\r\n");
   
-  elog.connect();
+  //connector.connect();
   /* send request */
-  elog.sendRequest(request);
+  std::cout<<request<<std::endl;
+  connector.sendRequest(request);
   
   /* receive response */
-  std::string response=elog.receiveRespond();
-  elog.close();
+  std::string response=connector.receiveRespond();
+  
+  std::cout<<response<<std::endl;
+  
+ // connector.disconnect();
   
   /* check response status */
-  if (strstr(response.c_str(), "$@MID@$:")) 
+  if(strstr(response.c_str(), "$@MID@$:")) 
   {
     /* separate attributes and message */
     
@@ -656,18 +463,20 @@ std::string retrieve_elog(Elog& elog, char *subdir, char *experiment,
       ph++;
     
     strlcpy(text, ph, TEXT_SIZE);
+    checkResponse(response);
     return std::move(response);
   }
   else
   {
     checkResponse(response);
+    std::cout<<response<<std::endl;
     throw 0;
   }    
 }
 
 /*------------------------------------------------------------------*/
 
-int submit_elog(Elog& elog, char *subdir, char *experiment,
+int submit_elog(elogpp::Connector& connector, char *subdir, char *experiment,
                 char *uname, char *upwd,
                 int reply,
                 int quote_on_reply,
@@ -715,10 +524,10 @@ int submit_elog(Elog& elog, char *subdir, char *experiment,
   std::string response{""};
   if (edit || download) {
     if (edit)
-      response = retrieve_elog(elog,subdir,experiment, uname, upwd, edit,
+      response = retrieve_elog(connector,subdir,experiment, uname, upwd, edit,
                              old_attrib_name, old_attrib, old_text);
       else
-        response = retrieve_elog(elog,subdir,experiment, uname, upwd, download,
+        response = retrieve_elog(connector,subdir,experiment, uname, upwd, download,
                                old_attrib_name, old_attrib, old_text);
 
         
@@ -755,7 +564,7 @@ int submit_elog(Elog& elog, char *subdir, char *experiment,
   
   if (reply) {
     response =
-    retrieve_elog(elog,subdir, experiment, uname, upwd, reply,
+    retrieve_elog(connector,subdir, experiment, uname, upwd, reply,
                   old_attrib_name, old_attrib, old_text);
     
     /* update attributes */
@@ -840,13 +649,13 @@ int submit_elog(Elog& elog, char *subdir, char *experiment,
     if (afilename[i][0])
       content_length += buffer_size[i];
     content = (char *)malloc(content_length);
-  if (content == NULL) {
+  if (content == nullptr) {
     printf("Not enough memory\n");
     return -1;
   }
   
   /* compose content */
-  srand((unsigned) time(NULL));
+  srand((unsigned) time(nullptr));
   sprintf(boundary, "---------------------------%04X%04X%04X", rand(), rand(), rand());
   strcpy(content, boundary);
   strcat(content, "\r\nContent-Disposition: form-data; name=\"cmd\"\r\n\r\nSubmit\r\n");
@@ -938,8 +747,8 @@ int submit_elog(Elog& elog, char *subdir, char *experiment,
                   strcat(request, " HTTP/1.0\r\n");
                   
                   sprintf(request + strlen(request), "Content-Type: multipart/form-data; boundary=%s\r\n", boundary);
-                  if(elog.getPort() != 80) sprintf(str, "%s:%d", elog.getHostname().c_str(), elog.getPort());
-                  else sprintf(str, "%s", elog.getHostname().c_str());
+                  if(connector.getPort() != 80) sprintf(str, "%s:%d", connector.getHostname().c_str(), connector.getPort());
+                  else sprintf(str, "%s", connector.getHostname().c_str());
                   sprintf(request + strlen(request), "Host: %s\r\n", str);
                   sprintf(request + strlen(request), "User-Agent: ELOG\r\n");
                   sprintf(request + strlen(request), "Content-Length: %d\r\n", content_length);
@@ -948,16 +757,16 @@ int submit_elog(Elog& elog, char *subdir, char *experiment,
                   
                   header_length = strlen(request);
                   
-                  elog.connect();
+                  connector.connect();
                   /* send request */
-                  elog.sendRequest(request);
+                  connector.sendRequest(request);
                   
                   /* send content */
-                  elog.sendRequest(content, content_length);
+                  connector.sendRequest(content, content_length);
                   
                   /* receive response */
-                  response=elog.receiveRespond();
-                  elog.close();
+                  response=connector.receiveRespond();
+                  connector.disconnect();
                   /* check response status */
                   checkResponse(response);
                   
@@ -968,7 +777,7 @@ int submit_elog(Elog& elog, char *subdir, char *experiment,
 
 int main(int argc, char *argv[])
 {
-  Elog elog;
+  elogpp::Connector connector;
   Type type{New};
   char str[1000], uname[80], upwd[80];
   char logbook[32], textfile[256], subdir[256];
@@ -985,16 +794,16 @@ int main(int argc, char *argv[])
   
   for (i = 0; i < maxAttachments; i++) {
     attachment[i][0] = 0;
-    buffer[i] = NULL;
+    buffer[i] = nullptr;
     att_size[i] = 0;
   }
   
   /* parse command line parameters */
   for (i = 1; i < argc; i++) {
     if (argv[i][0] == '-' && argv[i][1] == 'v')
-      verbose = 1;
+      connector.setVerbose(true);
     else if (argv[i][0] == '-' && argv[i][1] == 's')
-      elog.setSSL(true);
+      connector.setSSL(true);
     else if (argv[i][0] == '-' && argv[i][1] == 'q')
       quote_on_reply = 1;
     else if (argv[i][0] == '-' && argv[i][1] == 'x')
@@ -1002,8 +811,8 @@ int main(int argc, char *argv[])
     else {
       if (argv[i][0] == '-') {
         if (i + 1 >= argc || argv[i + 1][0] == '-') return usage();
-        if (argv[i][1] == 'h') elog.setHostname(argv[++i]);
-        else if (argv[i][1] == 'p') elog.setPort(atoi(argv[++i]));
+        if (argv[i][1] == 'h') connector.setHostname(argv[++i]);
+        else if (argv[i][1] == 'p') connector.setPort(atoi(argv[++i]));
         else if (argv[i][1] == 'l')
           strcpy(logbook, argv[++i]);
         else if (argv[i][1] == 'd')
@@ -1135,7 +944,7 @@ int main(int argc, char *argv[])
   }
 
   /* now submit message */
-  submit_elog(elog,subdir, logbook,
+  submit_elog(connector,subdir, logbook,
               uname, upwd, reply, quote_on_reply, edit, download, suppress, encoding, attr_name, attrib, n_attr, text,
               attachment, buffer, att_size);
 

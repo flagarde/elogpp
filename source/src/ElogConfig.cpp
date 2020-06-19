@@ -1,4 +1,4 @@
-#include "ElogConfig.h"
+#include "ElogConfig.hpp"
 #include <string>
 #include <cstdlib>
 #include "json/json.h"

@@ -1,8 +1,7 @@
-#ifndef ElogEntry_h
-#define ElogEntry_h
-#include "ElogMessage.h"
-#include "ElogCommand.h"
-#include "ElogConfig.h"
+#pragma once
+#include "ElogMessage.hpp"
+#include "ElogCommand.hpp"
+#include "ElogConfig.hpp"
 
 namespace elogpp
 {
@@ -48,4 +47,3 @@ private :
     ElogConfig conf;
 };
 }
-#endif
