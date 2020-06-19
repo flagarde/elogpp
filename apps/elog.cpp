@@ -60,6 +60,7 @@ int usage()
   return 1;
 }
 
+//##FIXME
 void checkResponse(const std::string& response)
 {
   if(response.find("302 Found")!=std::string::npos) 
@@ -97,14 +98,14 @@ void checkResponse(const std::string& response)
     {
       std::size_t loc=response.find("Error: Attribute")+27;
       std::string str=response.substr(loc);
-      if(loc=response.find('<');loc!=std::string::npos) response.substr(0,loc);
+      if(loc=response.find('<');loc!=std::string::npos) response.substr(loc);
       std::cout<<"Error: Non existing attribute option \""<<str<<"\"\n";
     }
     else
     {
       std::size_t loc=response.find("Error: Attribute")+20;
       std::string str=response.substr(loc);
-      if(loc=response.find('<');loc!=std::string::npos) response.substr(0,loc);
+      if(loc=response.find('<');loc!=std::string::npos) response.substr(loc);
       std::cout<<"Error: Missing required attribute \""<<str<<"\"\n";
     } 
   }
@@ -112,7 +113,7 @@ void checkResponse(const std::string& response)
 }
 
 #include <fcntl.h>
-#include <string.h>
+#include <cstring>
 #include <ctime>
 
 #ifdef _MSC_VER
@@ -129,14 +130,10 @@ void checkResponse(const std::string& response)
 #include "Crypt.hpp"
 #include "Connector.hpp"
 
-
 #define NAME_LENGTH     500
 #define TEXT_SIZE    100000
 
-char text[TEXT_SIZE], old_text[TEXT_SIZE], new_text[TEXT_SIZE];
-
 /*------------------------------------------------------------------*/
-
 size_t strlcpy(char *dst, const char *src, size_t size)
 {
   char *d = dst;
@@ -197,24 +194,17 @@ size_t strlcat(char *dst, const char *src, size_t size)
   return (dlen + (s - src));   /* count does not include NUL */
 }
 /*---- string comparison -------------------------------------------*/
-
-int equal_ustring(char *str1, char *str2)
+std::string toupper(const std::string& s) 
 {
-   if (str1 == NULL && str2 != NULL)
-      return 0;
-   if (str1 != NULL && str2 == NULL)
-      return 0;
-   if (str1 == NULL && str2 == NULL)
-      return 1;
+  std::string eval=s;
+  std::transform(eval.begin(), eval.end(), eval.begin(), [](unsigned char c){ return std::toupper(c); });
+  return eval;
+}
 
-   while (*str1)
-      if (toupper(*str1++) != toupper(*str2++))
-         return 0;
-
-   if (*str2)
-      return 0;
-
-   return 1;
+int equal_ustring(const std::string& str1,const std::string& str2)
+{
+  if(toupper(str1)==toupper(str2)) return true;
+  else return false;
 }
 
 void do_crypt(char *s, char *d, int size)
@@ -261,20 +251,6 @@ Encode the given string in-place by adding %XX escapes
    }
    *pd = '\0';
    strlcpy(ps, (char *) str, size);
-}
-
-/*------------------------------------------------------------------*/
-
-void sgets(char *string, int size)
-{
-   char *p;
-
-   do {
-      p = fgets(string, size, stdin);
-   } while (p == NULL);
-
-   if (strlen(p) > 0 && p[strlen(p) - 1] == '\n')
-      p[strlen(p) - 1] = 0;
 }
 
 /*------------------------------------------------------------------*/
@@ -326,203 +302,175 @@ void convert_crlf(char *buffer, int bufsize)
    }
 }
 
-
 /*------------------------------------------------------------------*/
-
-char  *content;
 
 std::string retrieve_elog(elogpp::Connector& connector, char *subdir,  char *experiment,char *uname, char *upwd, int message_id,char attrib_name[maxNAttributes][NAME_LENGTH], char attrib[maxNAttributes][NAME_LENGTH], char *text)
 {
-   int i, n, first, index, sock;
-   char str[256], encrypted_passwd[256], *ph, *ps;
-   char request[100000];
+  int index;
+  char str[256], encrypted_passwd[256];
+  char request[100000];
 
-   /* compose request */
-   strcpy(request, "GET /");
-   strlcpy(str, experiment, sizeof(str));
-   url_encode(str, sizeof(str));
-   if (subdir[0] && experiment[0])
-      sprintf(request + strlen(request), "%s/%s/%d?cmd=download", subdir, str, message_id);
-   else if (subdir[0])
-      sprintf(request + strlen(request), "%s/%d?cmd=download", subdir, message_id);
-   else if (experiment[0])
-      sprintf(request + strlen(request), "%s/%d?cmd=download", str, message_id);
-   strcat(request, " HTTP/1.0\r\n");
+  /* compose request */
+  strcpy(request, "GET /");
+  strlcpy(str, experiment, sizeof(str));
+  url_encode(str, sizeof(str));
+  if (subdir[0] && experiment[0]) sprintf(request + strlen(request), "%s/%s/%d?cmd=download", subdir, str, message_id);
+  else if (subdir[0]) sprintf(request + strlen(request), "%s/%d?cmd=download", subdir, message_id);
+  else if (experiment[0]) sprintf(request + strlen(request), "%s/%d?cmd=download", str, message_id);
+  strcat(request, " HTTP/1.0\r\n");
+  sprintf(request + strlen(request), "User-Agent: ELOG\r\n");
 
-   sprintf(request + strlen(request), "User-Agent: ELOG\r\n");
+  int first = 1;
 
-   first = 1;
+  if(uname[0]) 
+  {
+    if (first) sprintf(request + strlen(request), "Cookie: ");
+    first = 0;
+    sprintf(request + strlen(request), "unm=%s;", uname);
+  }
 
-   if (uname[0]) {
-      if (first)
-         sprintf(request + strlen(request), "Cookie: ");
-      first = 0;
+  if (upwd[0])
+  {
+    if (first)sprintf(request + strlen(request), "Cookie: ");
+    first = 0;
+    do_crypt(upwd, encrypted_passwd, sizeof(encrypted_passwd));
+    sprintf(request + strlen(request), "upwd=%s;", encrypted_passwd);
+  }
 
-      sprintf(request + strlen(request), "unm=%s;", uname);
-   }
+  /* finish cookie line */
+  if (!first) strcat(request, "\r\n");
 
-   if (upwd[0]) {
-      if (first)
-         sprintf(request + strlen(request), "Cookie: ");
-      first = 0;
-
-      do_crypt(upwd, encrypted_passwd, sizeof(encrypted_passwd));
-      sprintf(request + strlen(request), "upwd=%s;", encrypted_passwd);
-   }
-
-   /* finish cookie line */
-   if (!first)
-      strcat(request, "\r\n");
-
-   strcat(request, "\r\n");
-   connector.connect();
-   /* send request */
-   connector.sendRequest(request);
+  strcat(request, "\r\n");
+  connector.connect();
+  /* send request */
+  connector.sendRequest(request);
+  
+  /* receive response */
+  std::string response=connector.receiveRespond();
    
-   /* receive response */
-   std::string response=connector.receiveRespond();
-   
-   connector.disconnect();
-   /* check response status */
-   if (strstr(response.c_str(), "$@MID@$:")) 
-   {
-      /* separate attributes and message */
+  connector.disconnect();
+  /* check response status */
+  if (strstr(response.c_str(), "$@MID@$:")) 
+  {
+    const char* ph = strstr(response.c_str(), "========================================\n");
+    const char* ps = strstr(response.c_str(), "$@MID@$:");
+    while (*ps && *ps != '\n')
+    ps++;
+    while (*ps && (*ps == '\n' || *ps == '\r'))
+    ps++;
+    for(index = 0; index < maxNAttributes; index++) 
+    {
+      if (ps >= ph) break;
+      strlcpy(attrib_name[index], ps, NAME_LENGTH);
+      if (strchr(attrib_name[index], ':')) *(strchr(attrib_name[index], ':')) = 0;
 
-      const char* ph = strstr(response.c_str(), "========================================\n");
+      ps += strlen(attrib_name[index]) + 2;
+      strlcpy(attrib[index], ps, NAME_LENGTH);
 
-      /* skip first line */
-      const char* ps = strstr(response.c_str(), "$@MID@$:");
-      while (*ps && *ps != '\n')
-         ps++;
-      while (*ps && (*ps == '\n' || *ps == '\r'))
-         ps++;
-
-      for (index = 0; index < maxNAttributes; index++) {
-         if (ps >= ph)
-            break;
-
-         strlcpy(attrib_name[index], ps, NAME_LENGTH);
-         if (strchr(attrib_name[index], ':'))
-            *(strchr(attrib_name[index], ':')) = 0;
-
-         ps += strlen(attrib_name[index]) + 2;
-         strlcpy(attrib[index], ps, NAME_LENGTH);
-
-         for (i = 0; i < NAME_LENGTH; i++) {
-            if (attrib[index][i] == '\r' || attrib[index][i] == '\n')
-               attrib[index][i] = 0;
-
-            if (attrib[index][i] == 0)
-               break;
-         }
-
-         ps += strlen(attrib[index]);
-         while (*ps && (*ps == '\n' || *ps == '\r'))
-            ps++;
+      for (std::size_t i = 0; i < NAME_LENGTH; i++) 
+      {
+        if (attrib[index][i] == '\r' || attrib[index][i] == '\n')attrib[index][i] = 0;
+        if (attrib[index][i] == 0)break;
       }
 
-      attrib_name[index][0] = 0;
-      attrib[index][0] = 0;
+      ps += strlen(attrib[index]);
+      while (*ps && (*ps == '\n' || *ps == '\r'))
+      ps++;
+    }
 
-      ph = strchr(ph, '\n') + 1;
-      if (*ph == '\r')
-         ph++;
+    attrib_name[index][0] = 0;
+    attrib[index][0] = 0;
 
-      strlcpy(text, ph, TEXT_SIZE);
-      return response;
+    ph = strchr(ph, '\n') + 1;
+    if (*ph == '\r') ph++;
+
+    strlcpy(text, ph, TEXT_SIZE);
+    // checkResponse(response);
+    return response;
    }
    else
    {  
-      checkResponse(response);
-      throw "Error";
+    //checkResponse(response);
+    return response;
    }
 }
 
 /*------------------------------------------------------------------*/
-
 int submit_elog(elogpp::Connector& connector,char *subdir, char *experiment,char *uname, char *upwd,int reply,int quote_on_reply,int edit,int download,int suppress,int encoding,char attrib_name[maxNAttributes][NAME_LENGTH],char attrib[maxNAttributes][NAME_LENGTH],int n_attr,char *text, char afilename[maxAttachments][256],char *buffer[maxAttachments], int buffer_size[maxAttachments])
 {
-   int sock, i, n, header_length, content_length, index;
-   char host_name[256], boundary[80], str[80], encrypted_passwd[256], *p, *old_encoding;
-   char old_attrib_name[maxNAttributes+1][NAME_LENGTH], old_attrib[maxNAttributes+1][NAME_LENGTH];
-   char request[100000];
-   std::string response{""};
-   if (edit || download) {
-      if (edit)
-         response = retrieve_elog(connector,subdir,experiment, uname, upwd, edit,
-                                old_attrib_name, old_attrib, old_text);
-      else
-         response = retrieve_elog(connector,subdir,  experiment, uname, upwd, download,
-                                old_attrib_name, old_attrib, old_text);
-      /* update attributes */
-      for (index = 0; index < n_attr; index++) {
-         for (i = 0; i < maxNAttributes && old_attrib_name[i][0]; i++)
-            if (equal_ustring(attrib_name[index], old_attrib_name[i]))
-               break;
+  int status, sock, i, n, header_length, content_length, index;
+  char host_name[256], boundary[80], str[80], encrypted_passwd[256], *p;
+  char old_attrib_name[maxNAttributes+1][NAME_LENGTH], old_attrib[maxNAttributes+1][NAME_LENGTH];
+  char request[100000];
+  std::string response{""};
+  char old_text[TEXT_SIZE];
+  if (edit || download) 
+  {
+    if (edit) response = retrieve_elog(connector,subdir,experiment, uname, upwd, edit,old_attrib_name, old_attrib, old_text);
+    else response = retrieve_elog(connector,subdir,  experiment, uname, upwd, download, old_attrib_name, old_attrib, old_text);
+    /* update attributes */
+    for (index = 0; index < n_attr; index++) 
+    {
+      for (i = 0; i < maxNAttributes && old_attrib_name[i][0]; i++) if (equal_ustring(attrib_name[index], old_attrib_name[i])) break;
+      if (old_attrib_name[i][0]) strlcpy(old_attrib[i], attrib[index], NAME_LENGTH);
+    }
 
-         if (old_attrib_name[i][0])
-            strlcpy(old_attrib[i], attrib[index], NAME_LENGTH);
-      }
-
-      /* copy attributes */
-      for (i = 0; i < maxNAttributes && old_attrib_name[i][0]; i++) {
-         strlcpy(attrib_name[i], old_attrib_name[i], NAME_LENGTH);
-         strlcpy(attrib[i], old_attrib[i], NAME_LENGTH);
-      }
-
-      n_attr = i;
-
-      if (text[0] == 0)
-         strlcpy(text, old_text, TEXT_SIZE);
-   }
+    /* copy attributes */
+    for (i = 0; i < maxNAttributes && old_attrib_name[i][0]; i++) 
+    {
+      strlcpy(attrib_name[i], old_attrib_name[i], NAME_LENGTH);
+      strlcpy(attrib[i], old_attrib[i], NAME_LENGTH);
+    }
+    n_attr = i;
+    if (text[0] == 0) strlcpy(text, old_text, TEXT_SIZE);
+  }
    
-   if (download) {
-      if (strstr(response.c_str(), "$@MID@$:"))
-         printf("%s", strstr(response.c_str(), "$@MID@$:"));
-      else
-         printf("%s", response.c_str());
-      return 1;
-   }
+  if (download) 
+  {
+    std::cout<<"Download"<<std::endl;
+    if (strstr(response.c_str(), "$@MID@$:")) printf("%s", strstr(response.c_str(), "$@MID@$:"));
+    else printf("%s", response.c_str());
+    return 1;
+  }
 
-   if (reply) {
-      response =
-          retrieve_elog(connector,subdir,  experiment, uname, upwd, reply,
-                        old_attrib_name, old_attrib, old_text);
+  if (reply)
+  {
+    std::cout<<"Reply"<<std::endl;
+    response = retrieve_elog(connector,subdir,  experiment, uname, upwd, reply, old_attrib_name, old_attrib, old_text);
+    /* update attributes */
+    for (index = 0; index < n_attr; index++) 
+    {
+     for (i = 0; i < maxNAttributes && old_attrib_name[i][0]; i++) if (equal_ustring(attrib_name[index], old_attrib_name[i]))break;
+     if (old_attrib_name[i][0])
+     strlcpy(old_attrib[i], attrib[index], NAME_LENGTH);
+    }
 
-      /* update attributes */
-      for (index = 0; index < n_attr; index++) {
-         for (i = 0; i < maxNAttributes && old_attrib_name[i][0]; i++)
-            if (equal_ustring(attrib_name[index], old_attrib_name[i]))
-               break;
+    /* copy attributes */
+    for (i = 0; i < maxNAttributes && old_attrib_name[i][0]; i++) 
+    {
+        if (equal_ustring(old_attrib_name[i], "Reply to") || equal_ustring(old_attrib_name[i], "Date")) 
+        {
+          attrib_name[i][0] = 0;
+          attrib[i][0] = 0;
+        } 
+        else 
+        {
+          strlcpy(attrib_name[i], old_attrib_name[i], NAME_LENGTH);
+          strlcpy(attrib[i], old_attrib[i], NAME_LENGTH);
+        }
+    }
+    n_attr = i;
 
-         if (old_attrib_name[i][0])
-            strlcpy(old_attrib[i], attrib[index], NAME_LENGTH);
-      }
+    /* check encoding */
+    std::string old_encoding{"plain"};
 
-      /* copy attributes */
-      for (i = 0; i < maxNAttributes && old_attrib_name[i][0]; i++) {
-         if (equal_ustring(old_attrib_name[i], "Reply to") || equal_ustring(old_attrib_name[i], "Date")) {
-            attrib_name[i][0] = 0;
-            attrib[i][0] = 0;
-         } else {
-            strlcpy(attrib_name[i], old_attrib_name[i], NAME_LENGTH);
-            strlcpy(attrib[i], old_attrib[i], NAME_LENGTH);
-         }
-      }
+    for (i = 0; i < n_attr; i++) if (equal_ustring(attrib_name[i], "encoding")) break;
 
-      n_attr = i;
+    if (i < n_attr) old_encoding = std::string(attrib[i]);
 
-      /* check encoding */
-      old_encoding = "plain";
-
-      for (i = 0; i < n_attr; i++)
-         if (equal_ustring(attrib_name[i], "encoding"))
-            break;
-
-      if (i < n_attr)
-         old_encoding = attrib[i];
-
-      if (quote_on_reply) {
+      if (quote_on_reply) 
+      {
+         char new_text[TEXT_SIZE];
          strlcpy(new_text, text, sizeof(new_text));
 
          /* precede old text with "> " */
@@ -533,7 +481,7 @@ int submit_elog(elogpp::Connector& connector,char *subdir, char *experiment,char
             if (strchr(p, '\n')) {
                *strchr(p, '\n') = 0;
 
-               if (old_encoding[0] == 'H') {
+               if (old_encoding[0]== 'H') {
                   strlcat(text, "> ", TEXT_SIZE);
                   strlcat(text, p, TEXT_SIZE);
                   strlcat(text, "<br>\n", TEXT_SIZE);
@@ -568,11 +516,11 @@ int submit_elog(elogpp::Connector& connector,char *subdir, char *experiment,char
 
 
    content_length = 100000;
-   for (i = 0; i < maxAttachments; i++)
-      if (afilename[i][0])
-         content_length += buffer_size[i];
-   content = (char *)malloc(content_length);
-   if (content == NULL) {
+   for (i = 0; i < maxAttachments; i++) if (afilename[i][0]) content_length += buffer_size[i];
+   
+   char*  content = (char *)malloc(content_length);
+   if (content == NULL) 
+   {
       printf("Not enough memory\n");
       return -1;
    }
@@ -583,79 +531,58 @@ int submit_elog(elogpp::Connector& connector,char *subdir, char *experiment,char
    strcpy(content, boundary);
    strcat(content, "\r\nContent-Disposition: form-data; name=\"cmd\"\r\n\r\nSubmit\r\n");
 
-   if (uname[0])
-      sprintf(content + strlen(content),
-              "%s\r\nContent-Disposition: form-data; name=\"unm\"\r\n\r\n%s\r\n", boundary, uname);
+   if (uname[0]) sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"unm\"\r\n\r\n%s\r\n", boundary, uname);
 
-   if (upwd[0]) {
+   if (upwd[0]) 
+   {
       do_crypt(upwd, encrypted_passwd, sizeof(encrypted_passwd));
-      sprintf(content + strlen(content),
-              "%s\r\nContent-Disposition: form-data; name=\"upwd\"\r\n\r\n%s\r\n", boundary,
-              encrypted_passwd);
+      sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"upwd\"\r\n\r\n%s\r\n", boundary,encrypted_passwd);
    }
 
-   if (experiment[0])
-      sprintf(content + strlen(content),
-              "%s\r\nContent-Disposition: form-data; name=\"exp\"\r\n\r\n%s\r\n", boundary, experiment);
+   if (experiment[0]) sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"exp\"\r\n\r\n%s\r\n", boundary, experiment);
 
-   if (reply)
-      sprintf(content + strlen(content),
-              "%s\r\nContent-Disposition: form-data; name=\"reply_to\"\r\n\r\n%d\r\n", boundary, reply);
+   if (reply) sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"reply_to\"\r\n\r\n%d\r\n", boundary, reply);
 
-   if (edit) {
-      sprintf(content + strlen(content),
-              "%s\r\nContent-Disposition: form-data; name=\"edit_id\"\r\n\r\n%d\r\n", boundary, edit);
-      sprintf(content + strlen(content),
-              "%s\r\nContent-Disposition: form-data; name=\"skiplock\"\r\n\r\n1\r\n", boundary);
+   if (edit) 
+   {
+      sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"edit_id\"\r\n\r\n%d\r\n", boundary, edit);
+      sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"skiplock\"\r\n\r\n1\r\n", boundary);
    }
 
-   if (suppress)
-      sprintf(content + strlen(content),
-              "%s\r\nContent-Disposition: form-data; name=\"suppress\"\r\n\r\n1\r\n", boundary);
+   if (suppress) sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"suppress\"\r\n\r\n1\r\n", boundary);
 
-   if (encoding == 0)
-      sprintf(content + strlen(content),
-              "%s\r\nContent-Disposition: form-data; name=\"encoding\"\r\n\r\nELCode\r\n", boundary);
-   else if (encoding == 1)
-      sprintf(content + strlen(content),
-              "%s\r\nContent-Disposition: form-data; name=\"encoding\"\r\n\r\nplain\r\n", boundary);
-   else if (encoding == 2)
-      sprintf(content + strlen(content),
-              "%s\r\nContent-Disposition: form-data; name=\"encoding\"\r\n\r\nHTML\r\n", boundary);
+   if (encoding == 0) sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"encoding\"\r\n\r\nELCode\r\n", boundary);
+   else if (encoding == 1) sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"encoding\"\r\n\r\nplain\r\n", boundary);
+   else if (encoding == 2)sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"encoding\"\r\n\r\nHTML\r\n", boundary);
 
-   for (i = 0; i < n_attr; i++) {
+   for (i = 0; i < n_attr; i++) 
+   {
       strcpy(str, attrib_name[i]);
-      if (str[0]) {
+      if (str[0]) 
+      {
          stou(str);
-         sprintf(content + strlen(content),
-                 "%s\r\nContent-Disposition: form-data; name=\"%s\"\r\n\r\n%s\r\n", boundary, str, attrib[i]);
+         sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"%s\"\r\n\r\n%s\r\n", boundary, str, attrib[i]);
       }
    }
 
-   if (text[0])
-      sprintf(content + strlen(content),
-              "%s\r\nContent-Disposition: form-data; name=\"Text\"\r\n\r\n%s\r\n%s\r\n",
-              boundary, text, boundary);
+   if (text[0]) sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"Text\"\r\n\r\n%s\r\n%s\r\n",boundary, text, boundary);
 
    content_length = strlen(content);
    p = content + content_length;
 
-   for (i = 0; i < maxAttachments; i++)
-      if (afilename[i][0]) {
-         sprintf(p,
-                 "Content-Disposition: form-data; name=\"attfile%d\"; filename=\"%s\"\r\n\r\n",
-                 i + 1, afilename[i]);
+   for (i = 0; i < maxAttachments; i++)if (afilename[i][0]) 
+   {
+     sprintf(p,"Content-Disposition: form-data; name=\"attfile%d\"; filename=\"%s\"\r\n\r\n",i + 1, afilename[i]);
+    content_length += strlen(p);
+     p += strlen(p);
+    memcpy(p, buffer[i], buffer_size[i]);
+    p += buffer_size[i];
+    strcpy(p, boundary);
+    strcat(p, "\r\n");
 
-         content_length += strlen(p);
-         p += strlen(p);
-         memcpy(p, buffer[i], buffer_size[i]);
-         p += buffer_size[i];
-         strcpy(p, boundary);
-         strcat(p, "\r\n");
-
-         content_length += buffer_size[i] + strlen(p);
-         p += strlen(p);
-      }
+    content_length += buffer_size[i] + strlen(p);
+    p += strlen(p);
+  }
 
    /* compose request */
    strcpy(request, "POST /");
@@ -678,18 +605,17 @@ int submit_elog(elogpp::Connector& connector,char *subdir, char *experiment,char
    sprintf(request + strlen(request), "Content-Length: %d\r\n", content_length);
 
    strcat(request, "\r\n");
-
-  /* send request */
-  connector.connect();
-  connector.sendRequest(std::string(request));
-  /* send content */
-  connector.sendRequest(content);
-  /* receive response */
-  response=connector.receiveRespond();
-  connector.disconnect();
-  /* check response status */
-  checkResponse(response);
-  return 1;
+   connector.connect();
+   /* send request */
+   connector.sendRequest(std::string(request));
+   /* send content */
+   connector.sendRequest(content);
+   /* receive response */
+   std::string response2=connector.receiveRespond();
+   /* check response status */
+  // checkResponse(response2);
+    connector.disconnect();
+   return 1;
 }
 
 /*------------------------------------------------------------------*/
@@ -704,7 +630,7 @@ int main(int argc, char *argv[])
    int i, n, fh, n_att, n_attr,  reply, quote_on_reply, edit, download, encoding, suppress, size, 
        text_flag;
    char attr_name[maxNAttributes][NAME_LENGTH], attrib[maxNAttributes][NAME_LENGTH];
-
+char text[TEXT_SIZE];
    text[0] = textfile[0] = uname[0] = upwd[0] = suppress = quote_on_reply = 0;
     logbook[0] = subdir[0] = 0;
    n_att = n_attr = reply = edit = download = encoding = 0;
@@ -748,6 +674,7 @@ int main(int argc, char *argv[])
                   *strchr(str, '=') = 0;
                   strcpy(attr_name[n_attr], str);
                   n_attr++;
+                  
                } else {
                   printf("Error: Attributes must be supplied in the form \"-a <attribute>=<value>\".\n");
                   return 1;
@@ -791,45 +718,40 @@ int main(int argc, char *argv[])
 
    fh = -1;
 
-   if (textfile[0]) {
+   if (textfile[0]) 
+   {
       fh = open(textfile, O_RDONLY | O_BINARY);
-      if (fh < 0) {
+      if (fh < 0) 
+      {
          printf("Message file \"%s\" does not exist.\n", textfile);
          return 1;
       }
-
       size = (int) lseek(fh, 0, SEEK_END);
       lseek(fh, 0, SEEK_SET);
-
-      if (size > (int) (sizeof(text) - 1)) {
+      if (size > (int) (sizeof(text) - 1)) 
+      {
          printf("Message file \"%s\" is too long (%zd bytes max).\n", textfile, sizeof(text));
          return 1;
       }
-
       i = read(fh, text, size);
-
-      if (i < size) {
+      if (i < size) 
+      {
          printf("Cannot fully read message from file %s.\n", textfile);
          return 1;
       }
-
       close(fh);
    }
 
-   if (text_flag == 0 && !edit && !download) {
+   if (text_flag == 0 && !edit && !download) 
+   {
       /* read from stdin */
-
       n = 0;
-
-      do {
+      do 
+      {
          i = getchar();
-
          text[n++] = i;
-
       } while (i != EOF);
-
-      if (n > 0)
-         text[n - 1] = 0;
+      if (n > 0) text[n - 1] = 0;
    }
 
    /* change CR -> CRLF for unix text files */
@@ -837,40 +759,30 @@ int main(int argc, char *argv[])
 
    /*---- open attachment file ----*/
 
-   for (i = 0; i < maxAttachments; i++) {
-      if (!attachment[i][0])
-         break;
-
+   for (i = 0; i < maxAttachments; i++) 
+   {
+      if (!attachment[i][0])break;
       fh = open(attachment[i], O_RDONLY | O_BINARY);
-      if (fh < 0) {
+      if (fh < 0) 
+      {
          printf("Attachment file \"%s\" does not exist.\n", attachment[i]);
          return 1;
       }
-
       att_size[i] = lseek(fh, 0, SEEK_END);
       lseek(fh, 0, SEEK_SET);
-
       buffer[i] = (char *)malloc(att_size[i] + 1);
-
       n = read(fh, buffer[i], att_size[i]);
-      if (n < att_size[i]) {
+      if (n < att_size[i]) 
+      {
          printf("Cannot fully read attachment file \"%s\".\n", attachment[i]);
          return 1;
       }
       buffer[i][n] = 0;
-
       close(fh);
    }
 
    /* now submit message */
-
-   submit_elog(connector, subdir, logbook,
-               uname, upwd, reply, quote_on_reply, edit, download, suppress, encoding, attr_name, attrib, n_attr, text,
-               attachment, buffer, att_size);
-
-   for (i = 0; i < maxAttachments; i++)
-      if (buffer[i])
-         free(buffer[i]);
-
+   submit_elog(connector, subdir, logbook,uname, upwd, reply, quote_on_reply, edit, download, suppress, encoding, attr_name, attrib, n_attr, text,attachment, buffer, att_size);
+   for (i = 0; i < maxAttachments; i++)if (buffer[i])free(buffer[i]);
    return 0;
 }

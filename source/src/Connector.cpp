@@ -13,12 +13,15 @@
   #include <io.h>
 #else
   #include <netdb.h>
-  #include <netinet/in.h>
-  #include <sys/socket.h>
-  #include <sys/time.h>
+  //#include <netinet/in.h>
+  //#include <sys/socket.h>
+  //#include <sys/time.h>
   #include <unistd.h>
-  #include <signal.h>
+  //#include <signal.h>
   #define closesocket(s) ::close(s)
+  #ifndef O_BINARY
+    #define O_BINARY 0
+  #endif
 #endif
 
 
