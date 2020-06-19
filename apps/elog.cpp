@@ -328,25 +328,14 @@ std::string retrieve_elog(elogpp::Connector& connector,char *subdir,  char *expe
   strcat(request, " HTTP/1.0\r\n");
   sprintf(request + strlen(request), "User-Agent: ELOG\r\n");
 
-  int first = 1;
-
   if(uname[0]) 
   {
-    if (first) sprintf(request + strlen(request), "Cookie: ");
-    first = 0;
+    sprintf(request + strlen(request), "Cookie: ");
     sprintf(request + strlen(request), "unm=%s;", uname);
-  }
-
-  if (upwd[0])
-  {
-    if (first)sprintf(request + strlen(request), "Cookie: ");
-    first = 0;
     do_crypt(upwd, encrypted_passwd, sizeof(encrypted_passwd));
     sprintf(request + strlen(request), "upwd=%s;", encrypted_passwd);
+    strcat(request, "\r\n");
   }
-
-  /* finish cookie line */
-  if (!first) strcat(request, "\r\n");
 
   strcat(request, "\r\n");
   connector.connect();
