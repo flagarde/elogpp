@@ -275,9 +275,9 @@ void convert_crlf(char *buffer, int bufsize) {
 
 /*------------------------------------------------------------------*/
 
-char request[100000], response[100000], *content;
+char *content;
 
-int retrieve_elog(elogpp::Connector& connector,char *host, int port, char *subdir, int ssl, char *experiment,
+std::string retrieve_elog(elogpp::Connector& connector,char *host, int port, char *subdir, int ssl, char *experiment,
                   char *uname, char *upwd, int message_id,
                   char attrib_name[maxNAttributes][NAME_LENGTH],
                   char attrib[maxNAttributes][NAME_LENGTH], char *text)
@@ -305,9 +305,9 @@ int retrieve_elog(elogpp::Connector& connector,char *host, int port, char *subdi
  * \********************************************************************/
 {
   int i, n, first, index;
-  char str[256], *ph, *ps;
+  char str[256];
   connector.connect();
-
+  char request[100000];
   /* compose request */
   strcpy(request, "GET /");
   strlcpy(str, experiment, sizeof(str));
@@ -403,7 +403,7 @@ connector.send(request);
 
     strlcpy(text, ph, TEXT_SIZE);
 
-    return 1;
+    return resp;
   }
 
   if (strstr(resp.c_str(), "302 Found")) {
@@ -435,7 +435,7 @@ connector.send(request);
   else
     printf("Error transmitting message\n");
 
-  return 0;
+  throw 0;
 }
 
 /*------------------------------------------------------------------*/
@@ -475,17 +475,15 @@ int submit_elog(elogpp::Connector& connector,const Type &type, const int &ID, ch
  *
  * \********************************************************************/
 {
-  int status, i, n, header_length, content_length, index;
+  int i, n, header_length, content_length, index;
   char host_name[256], boundary[80], str[80], *p;
   char old_attrib_name[maxNAttributes + 1][NAME_LENGTH],
       old_attrib[maxNAttributes + 1][NAME_LENGTH];
 
+      
+  std::string response{""};
+  if(type!=New) response=retrieve_elog(connector,host, port, subdir, ssl, experiment, uname, upwd, ID,old_attrib_name, old_attrib, old_text);
   if (type == Edit || type == Download) {
-    status = retrieve_elog(connector,host, port, subdir, ssl, experiment, uname, upwd, ID,
-                           old_attrib_name, old_attrib, old_text);
-
-    if (status != 1)
-      return status;
 
     /* update attributes */
     for (index = 0; index < n_attr; index++) {
@@ -510,19 +508,15 @@ int submit_elog(elogpp::Connector& connector,const Type &type, const int &ID, ch
   }
 
   if (type == Download) {
-    if (strstr(response, "$@MID@$:"))
-      printf("%s", strstr(response, "$@MID@$:"));
+    if (strstr(response.c_str(), "$@MID@$:"))
+      printf("%s", strstr(response.c_str(), "$@MID@$:"));
     else
-      printf("%s", response);
+      printf("%s", response.c_str());
     return 1;
   }
 
   if (type == Reply) {
-    status = retrieve_elog(connector,host, port, subdir, ssl, experiment, uname, upwd, ID,
-                           old_attrib_name, old_attrib, old_text);
 
-    if (status != 1)
-      return status;
 
     /* update attributes */
     for (index = 0; index < n_attr; index++) {
@@ -717,6 +711,7 @@ int submit_elog(elogpp::Connector& connector,const Type &type, const int &ID, ch
     }
 
   /* compose request */
+  char request[100000];
   strcpy(request, "POST /");
   if (subdir[0])
     sprintf(request + strlen(request), "%s/", subdir);
@@ -806,14 +801,13 @@ int main(int argc, char *argv[]) {
   char host_name[256], logbook[32], textfile[256], subdir[256];
   char *buffer[maxAttachments], attachment[maxAttachments][256];
   int att_size[maxAttachments];
-  int i, n, fh, n_att, n_attr, port, reply, quote_on_reply, edit, download,
-      encoding, suppress, size, ssl, text_flag;
+  int i, n, fh, n_att, n_attr, port,  quote_on_reply ,encoding, suppress, size, ssl, text_flag;
   char attr_name[maxNAttributes][NAME_LENGTH],
       attrib[maxNAttributes][NAME_LENGTH];
 
   text[0] = textfile[0] = uname[0] = upwd[0] = suppress = quote_on_reply = 0;
   host_name[0] = logbook[0] = subdir[0] = 0;
-  n_att = n_attr = reply = edit = download = encoding = 0;
+  n_att = n_attr = encoding = 0;
   port = 80;
   ssl = 0;
   text_flag = 0;
@@ -867,10 +861,9 @@ int main(int argc, char *argv[]) {
           ID = atoi(argv[++i]);
         } else if (argv[i][1] == 'w') {
           type = Download;
-          if (argv[i + 1][0] == 'l')
-            ID = -1;
+          if (argv[i + 1][0] == 'l') ID = -1;
           else
-            ID = atoi(argv[++i]);
+          ID = std::stoi(argv[++i]); 
         } else if (argv[i][1] == 'n')
           encoding = atoi(argv[++i]);
         else if (argv[i][1] == 'm') {
@@ -891,10 +884,6 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  if (n_attr == 0 && !edit && !reply && !download) {
-    printf("Please specify attribute(s) with the \"-a\" flag.\n");
-    return 1;
-  }
 
   fh = -1;
 
@@ -924,7 +913,7 @@ int main(int argc, char *argv[]) {
     close(fh);
   }
 
-  if (text_flag == 0 && !edit && !download) {
+  if (text_flag == 0 && (type==New || type==Reply)) {
     /* read from stdin */
 
     n = 0;
