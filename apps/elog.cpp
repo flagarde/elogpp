@@ -217,7 +217,7 @@ void sgets(char *string, int size) {
 
   do {
     p = fgets(string, size, stdin);
-  } while (p == NULL);
+  } while (p == nullptr);
 
   if (strlen(p) > 0 && p[strlen(p) - 1] == '\n')
     p[strlen(p) - 1] = 0;
@@ -233,7 +233,7 @@ void add_crlf(char *buffer, int bufsize) {
 
   /* convert \n -> \r\n */
   p = buffer;
-  while ((p = strstr(p, "\n")) != NULL) {
+  while ((p = strstr(p, "\n")) != nullptr) {
 
     if (p > buffer && *(p - 1) == '\r') {
       p++;
@@ -261,7 +261,7 @@ void convert_crlf(char *buffer, int bufsize) {
 
   /* convert '\n' -> \r\n */
   p = buffer;
-  while ((p = strstr(p, "\\n")) != NULL) {
+  while ((p = strstr(p, "\\n")) != nullptr) {
 
     if (p - buffer < bufsize - 2) {
       *(p++) = '\r';
@@ -277,7 +277,7 @@ void convert_crlf(char *buffer, int bufsize) {
 
 char *content;
 
-std::string retrieve_elog(elogpp::Connector& connector,char *host, int port, char *subdir, int ssl, char *experiment,
+std::string retrieve_elog(elogpp::Connector& connector,char *subdir, char *experiment,
                   char *uname, char *upwd, int message_id,
                   char attrib_name[maxNAttributes][NAME_LENGTH],
                   char attrib[maxNAttributes][NAME_LENGTH], char *text)
@@ -440,7 +440,7 @@ connector.send(request);
 
 /*------------------------------------------------------------------*/
 
-int submit_elog(elogpp::Connector& connector,const Type &type, const int &ID, char *host, int port, int ssl,
+int submit_elog(elogpp::Connector& connector,const Type &type, const int &ID,
                 char *subdir, char *experiment, char *uname, char *upwd,
                 int quote_on_reply, int suppress, int encoding,
                 char attrib_name[maxNAttributes][NAME_LENGTH],
@@ -482,7 +482,7 @@ int submit_elog(elogpp::Connector& connector,const Type &type, const int &ID, ch
 
       
   std::string response{""};
-  if(type!=New) response=retrieve_elog(connector,host, port, subdir, ssl, experiment, uname, upwd, ID,old_attrib_name, old_attrib, old_text);
+  if(type!=New) response=retrieve_elog(connector,subdir, experiment, uname, upwd, ID,old_attrib_name, old_attrib, old_text);
   if (type == Edit || type == Download) {
 
     /* update attributes */
@@ -604,13 +604,13 @@ int submit_elog(elogpp::Connector& connector,const Type &type, const int &ID, ch
     if (afilename[i][0])
       content_length += buffer_size[i];
   content = (char *)malloc(content_length);
-  if (content == NULL) {
+  if (content == nullptr) {
     printf("Not enough memory\n");
     return -1;
   }
 
   /* compose content */
-  srand((unsigned)time(NULL));
+  srand((unsigned)time(nullptr));
   sprintf(boundary, "---------------------------%04X%04X%04X", rand(), rand(),
           rand());
   strcpy(content, boundary);
@@ -724,10 +724,10 @@ int submit_elog(elogpp::Connector& connector,const Type &type, const int &ID, ch
 
   sprintf(request + strlen(request),
           "Content-Type: multipart/form-data; boundary=%s\r\n", boundary);
-  if (port != 80)
-    sprintf(str, "%s:%d", host, port);
+  if (connector.getPort()!= 80)
+    sprintf(str, "%s:%d", connector.getHostname().c_str(),connector.getPort());
   else
-    sprintf(str, "%s", host);
+    sprintf(str, "%s", connector.getHostname().c_str());
   sprintf(request + strlen(request), "Host: %s\r\n", str);
   sprintf(request + strlen(request), "User-Agent: ELOG\r\n");
   sprintf(request + strlen(request), "Content-Length: %d\r\n", content_length);
@@ -798,7 +798,7 @@ int main(int argc, char *argv[]) {
   int ID{0};
   elogpp::Connector connector;
   char str[1000], uname[80], upwd[80];
-  char host_name[256], logbook[32], textfile[256], subdir[256];
+  char logbook[32], textfile[256], subdir[256];
   char *buffer[maxAttachments], attachment[maxAttachments][256];
   int att_size[maxAttachments];
   int i, n, fh, n_att, n_attr, port,  quote_on_reply ,encoding, suppress, size, ssl, text_flag;
@@ -806,15 +806,13 @@ int main(int argc, char *argv[]) {
       attrib[maxNAttributes][NAME_LENGTH];
 
   text[0] = textfile[0] = uname[0] = upwd[0] = suppress = quote_on_reply = 0;
-  host_name[0] = logbook[0] = subdir[0] = 0;
+  logbook[0] = subdir[0] = 0;
   n_att = n_attr = encoding = 0;
-  port = 80;
-  ssl = 0;
   text_flag = 0;
 
   for (i = 0; i < maxAttachments; i++) {
     attachment[i][0] = 0;
-    buffer[i] = NULL;
+    buffer[i] = nullptr;
     att_size[i] = 0;
   }
 
@@ -960,9 +958,7 @@ int main(int argc, char *argv[]) {
   }
 
   /* now submit message */
-  submit_elog(connector,type, ID, host_name, port, ssl, subdir, logbook, uname, upwd,
-              quote_on_reply, suppress, encoding, attr_name, attrib, n_attr,
-              text, attachment, buffer, att_size);
+  submit_elog(connector,type, ID, subdir, logbook, uname, upwd,quote_on_reply, suppress, encoding, attr_name, attrib, n_attr,text, attachment, buffer, att_size);
 
   for (i = 0; i < maxAttachments; i++)
     if (buffer[i])
