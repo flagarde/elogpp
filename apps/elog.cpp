@@ -420,7 +420,8 @@ connector.send(request);
 
 /*------------------------------------------------------------------*/
 
-int submit_elog(elogpp::Connector& connector,const Type &type, const int &ID,const std::string& subdir,const std::string& logbook, char *uname, char *upwd,
+int submit_elog(elogpp::Connector& connector,const Type &type, const int &ID,const std::string&
+              subdir,const std::string& logbook, char *uname, char *upwd,
                 int quote_on_reply, int suppress, int encoding,
                 char attrib_name[maxNAttributes][NAME_LENGTH],
                 char attrib[maxNAttributes][NAME_LENGTH], int n_attr,
@@ -748,16 +749,17 @@ int main(int argc, char *argv[]) {
   std::vector<std::string> attachments;
   std::string logbook{""};
   std::string subdir{""};
+  std::string textfile{""};
+  
   
   char str[1000], uname[80], upwd[80];
-  char textfile[256];
   char *buffer[maxAttachments];
   int att_size[maxAttachments];
   int i, n, fh, n_att, n_attr, port,  quote_on_reply ,encoding, suppress, size, ssl, text_flag;
   char attr_name[maxNAttributes][NAME_LENGTH],
       attrib[maxNAttributes][NAME_LENGTH];
 
-  text[0] = textfile[0] = uname[0] = upwd[0] = suppress = quote_on_reply = 0;
+  text[0] = uname[0] = upwd[0] = suppress = quote_on_reply = 0;
   n_att = n_attr = encoding = 0;
   text_flag = 0;
 
@@ -813,8 +815,9 @@ int main(int argc, char *argv[]) {
           ID = std::stoi(argv[++i]); 
         } else if (argv[i][1] == 'n')
           encoding = atoi(argv[++i]);
-        else if (argv[i][1] == 'm') {
-          strcpy(textfile, argv[++i]);
+        else if (argv[i][1] == 'm') 
+        {
+          textfile=std::string(argv[++i]);
           text_flag = 1;
         } else
           usage();
@@ -835,29 +838,28 @@ int main(int argc, char *argv[]) {
 
   fh = -1;
 
-  if (textfile[0]) {
-    fh = open(textfile, O_RDONLY | O_BINARY);
-    if (fh < 0) {
-      printf("Message file \"%s\" does not exist.\n", textfile);
+  if(!textfile.empty()) 
+  {
+    int fh = open(textfile.c_str(), O_RDONLY | O_BINARY);
+    if (fh < 0) 
+    {
+      std::cout<<"Message file \""<<textfile<<"\" does not exist.\n";
       return 1;
     }
-
-    size = (int)lseek(fh, 0, SEEK_END);
+    int size = (int)lseek(fh, 0, SEEK_END);
     lseek(fh, 0, SEEK_SET);
 
-    if (size > (int)(sizeof(text) - 1)) {
-      printf("Message file \"%s\" is too long (%zd bytes max).\n", textfile,
-             sizeof(text));
+    if (size > (int)(sizeof(text) - 1)) 
+    {
+      std::cout<<"Message file \""<<textfile<<"\" is too long ("<<sizeof(text)<<" bytes max).\n";
       return 1;
     }
-
-    i = read(fh, text, size);
-
-    if (i < size) {
-      printf("Cannot fully read message from file %s.\n", textfile);
+    int i = read(fh, text, size);
+    if (i < size) 
+    {
+      std::cout<<"Cannot fully read message from file "<<textfile<<".\n";
       return 1;
     }
-
     close(fh);
   }
 
