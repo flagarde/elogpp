@@ -42,6 +42,8 @@
 namespace elogpp
 {
  
+  
+
  /* Structure to save state of computation between the single steps.  */
  struct sha256_ctx {
    uint32_t H[8];
@@ -580,5 +582,11 @@ char *sha256_crypt(const char *key, const char *salt)
 
    return sha256_crypt_r(key, salt, buffer, buflen);
 }
+
+std::string do_crypt(const std::string& password)
+{
+  return std::string(sha256_crypt(password.c_str(), "$5$")+4);
+}
+
 
 }

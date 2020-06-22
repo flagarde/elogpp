@@ -1,8 +1,7 @@
 #pragma once
+#include <string>
 
 namespace elogpp
 {
-
-  char* sha256_crypt(const char *key, const char *salt);
-  
+  std::string do_crypt(const std::string& password);
 }
