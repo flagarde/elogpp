@@ -190,16 +190,16 @@ void stou(char *str)
 
 /*------------------------------------------------------------------*/
 
-void url_encode(char *ps, int size)
+std::string url_encode(const std::string& ps)
 /********************************************************************\
  * Encode the given string in-place by adding %XX escapes
  * \********************************************************************/
 {
-  unsigned char *pd, *p;
-  unsigned char str[NAME_LENGTH];
+  char *pd, *p;
+  char str[NAME_LENGTH];
 
-  pd = (unsigned char *)str;
-  p = (unsigned char *)ps;
+  pd = (char *)str;
+  p = (char *)&ps[0];
   while (*p && pd < str + 250) {
     if (strchr("%&=#?+", *p) || *p > 127) {
       sprintf((char *)pd, "%%%02X", *p);
@@ -213,7 +213,7 @@ void url_encode(char *ps, int size)
     }
   }
   *pd = '\0';
-  strlcpy(ps, (char *)str, size);
+  return str;
 }
 
 /*------------------------------------------------------------------*/
@@ -283,7 +283,8 @@ void convert_crlf(char *buffer, int bufsize) {
 
 char *content;
 
-std::string retrieve_elog(elogpp::Connector& connector,char *subdir, char *experiment,const std::string& uname,const std::string& upwd, int message_id,
+std::string retrieve_elog(elogpp::Connector& connector,char *subdir,const std::string& logbook,
+                  char *uname, char *upwd, int message_id,
                   char attrib_name[maxNAttributes][NAME_LENGTH],
                   char attrib[maxNAttributes][NAME_LENGTH], char *text)
 /********************************************************************\
@@ -309,34 +310,44 @@ std::string retrieve_elog(elogpp::Connector& connector,char *subdir, char *exper
  *
  * \********************************************************************/
 {
-  int i, n,  index;
+  int i, n, first, index;
   char str[256];
   connector.connect();
   char request[100000];
   /* compose request */
   strcpy(request, "GET /");
-  strlcpy(str, experiment, sizeof(str));
-  url_encode(str, sizeof(str));
-  if (subdir[0] && experiment[0])
-    sprintf(request + strlen(request), "%s/%s/%d?cmd=download", subdir, str,
-            message_id);
-  else if (subdir[0])
-    sprintf(request + strlen(request), "%s/%d?cmd=download", subdir,
-            message_id);
-  else if (experiment[0])
-    sprintf(request + strlen(request), "%s/%d?cmd=download", str, message_id);
+  //strlcpy(str, experiment, sizeof(str));
+  std::string encodedlogbook=url_encode(logbook);
+//  url_encode(logbook.c_str(), sizeof(logbook.c_str()));
+  if(subdir[0] && !logbook.empty()) sprintf(request + strlen(request), "%s/%s/%d?cmd=download", subdir, encodedlogbook.c_str(),message_id);
+  else if (subdir[0]) sprintf(request + strlen(request), "%s/%d?cmd=download", subdir,message_id);
+  else if(!logbook.empty()) sprintf(request + strlen(request), "%s/%d?cmd=download", encodedlogbook.c_str(), message_id);
   strcat(request, " HTTP/1.0\r\n");
 
   sprintf(request + strlen(request), "User-Agent: ELOG\r\n");
 
+  first = 1;
 
-  if(!uname.empty()) 
-  {
-    sprintf(request + strlen(request), "Cookie: ");
+  if (uname[0]) {
+    if (first)
+      sprintf(request + strlen(request), "Cookie: ");
+    first = 0;
+
     sprintf(request + strlen(request), "unm=%s;", uname);
-    sprintf(request + strlen(request), "upwd=%s;",elogpp::do_crypt(upwd).c_str());
-    strcat(request, "\r\n");
   }
+
+  if (upwd[0]) {
+    if (first)
+      sprintf(request + strlen(request), "Cookie: ");
+    first = 0;
+
+    sprintf(request + strlen(request), "upwd=%s;",
+            elogpp::do_crypt(upwd).c_str());
+  }
+
+  /* finish cookie line */
+  if (!first)
+    strcat(request, "\r\n");
 
   strcat(request, "\r\n");
 
@@ -432,12 +443,39 @@ connector.send(request);
 /*------------------------------------------------------------------*/
 
 int submit_elog(elogpp::Connector& connector,const Type &type, const int &ID,
-                char *subdir, char *experiment,const std::string& uname,const std::string& upwd,
+                char *subdir,const std::string& logbook, char *uname, char *upwd,
                 int quote_on_reply, int suppress, int encoding,
                 char attrib_name[maxNAttributes][NAME_LENGTH],
                 char attrib[maxNAttributes][NAME_LENGTH], int n_attr,
                 char *text, const std::vector<std::string>& attachments,
                 char *buffer[maxAttachments], int buffer_size[maxAttachments])
+/********************************************************************\
+ *
+ *  Routine: submit_elog
+ *
+ *  Purpose: Submit an ELog entry
+ *
+ *  Input:
+ *    char   *host            Host name where ELog server runs
+ *    in     port             ELog server port number
+ *    int    ssl              SSL flag
+ *    char   *subdir          Subdirectoy to elog server
+ *    char   *uname           User name
+ *    char   *upwd            User password
+ *    int    suppress         Suppress Email notification
+ *    int    encoding         0:ELCode,1:plain,2:HTML
+ *    char   *attrib_name     Attribute names
+ *    char   *attrib          Attribute values
+ *    char   *text            Message text
+ *
+ *    char   afilename[]      File names of attachments
+ *    char   *buffer[]        Attachment contents
+ *    int    buffer_size[]    Size of buffer in bytes
+ *
+ *  Function value:
+ *    EL_SUCCESS              Successful completion
+ *
+ * \********************************************************************/
 {
   int i, n, header_length, content_length, index;
   char host_name[256], boundary[80], str[80], *p;
@@ -446,7 +484,7 @@ int submit_elog(elogpp::Connector& connector,const Type &type, const int &ID,
 
       
   std::string response{""};
-  if(type!=New) response=retrieve_elog(connector,subdir, experiment, uname, upwd, ID,old_attrib_name, old_attrib, old_text);
+  if(type!=New) response=retrieve_elog(connector,subdir, logbook, uname, upwd, ID,old_attrib_name, old_attrib, old_text);
   if (type == Edit || type == Download) {
 
     /* update attributes */
@@ -580,21 +618,20 @@ int submit_elog(elogpp::Connector& connector,const Type &type, const int &ID,
   strcat(content,
          "\r\nContent-Disposition: form-data; name=\"cmd\"\r\n\r\nSubmit\r\n");
 
-  if(!uname.empty())
-  {
+  if (uname[0])
     sprintf(content + strlen(content),
             "%s\r\nContent-Disposition: form-data; name=\"unm\"\r\n\r\n%s\r\n",
-            boundary, uname.c_str());
+            boundary, uname);
+
+  if (upwd[0]) {
 
     sprintf(content + strlen(content),
             "%s\r\nContent-Disposition: form-data; name=\"upwd\"\r\n\r\n%s\r\n",
             boundary, elogpp::do_crypt(upwd).c_str());
   }
 
-  if (experiment[0])
-    sprintf(content + strlen(content),
-            "%s\r\nContent-Disposition: form-data; name=\"exp\"\r\n\r\n%s\r\n",
-            boundary, experiment);
+  if(!logbook.empty()) sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"exp\"\r\n\r\n%s\r\n",
+            boundary,logbook.c_str());
 
   if (type == Reply)
     sprintf(
@@ -677,10 +714,9 @@ int submit_elog(elogpp::Connector& connector,const Type &type, const int &ID,
   strcpy(request, "POST /");
   if (subdir[0])
     sprintf(request + strlen(request), "%s/", subdir);
-  if (experiment[0]) {
-    strcpy(str, experiment);
-    url_encode(str, sizeof(str));
-    sprintf(request + strlen(request), "%s/", str);
+  if(!logbook.empty()) 
+  {
+    sprintf(request + strlen(request), "%s/",url_encode(logbook).c_str());
   }
   strcat(request, " HTTP/1.0\r\n");
 
@@ -760,11 +796,10 @@ int main(int argc, char *argv[]) {
   int ID{0};
   elogpp::Connector connector;
   std::vector<std::string> attachments;
-  std::string uname{""};
-  std::string upwd{""};
+  std::string logbook{""};
   
-  char str[1000];
-  char logbook[32], textfile[256], subdir[256];
+  char str[1000], uname[80], upwd[80];
+  char textfile[256], subdir[256];
   char *buffer[maxAttachments];
   int att_size[maxAttachments];
   int i, n, fh, n_att, n_attr, port,  quote_on_reply ,encoding, suppress, size, ssl, text_flag;
@@ -772,7 +807,7 @@ int main(int argc, char *argv[]) {
       attrib[maxNAttributes][NAME_LENGTH];
 
   text[0] = textfile[0] = uname[0] = upwd[0] = suppress = quote_on_reply = 0;
-  logbook[0] = subdir[0] = 0;
+  subdir[0] = 0;
   n_att = n_attr = encoding = 0;
   text_flag = 0;
 
@@ -795,14 +830,12 @@ int main(int argc, char *argv[]) {
           usage();
         if (argv[i][1] == 'h')  connector.setHostname(std::string(argv[++i]));
         else if (argv[i][1] == 'p') connector.setPort(atoi(argv[++i]));
-        else if (argv[i][1] == 'l')
-          strcpy(logbook, argv[++i]);
+        else if (argv[i][1] == 'l') logbook=std::string(argv[++i]);
         else if (argv[i][1] == 'd')
           strcpy(subdir, argv[++i]);
-        else if (argv[i][1] == 'u') 
-        {
-          uname=std::string(argv[++i]);
-          upwd=std::string(argv[++i]);
+        else if (argv[i][1] == 'u') {
+          strcpy(uname, argv[++i]);
+          strcpy(upwd, argv[++i]);
         } else if (argv[i][1] == 'a') {
           strcpy(str, argv[++i]);
           if (strchr(str, '=')) {
@@ -844,8 +877,9 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  if (logbook[0] == 0) {
-    printf("Please specify logbook with the \"-l\" flag.\n");
+  if(logbook.empty()) 
+  {
+    std::cout<<"Please specify logbook with the \"-l\" flag.\n";
     return 1;
   }
 
