@@ -283,32 +283,10 @@ void convert_crlf(char *buffer, int bufsize) {
 
 char *content;
 
-std::string retrieve_elog(elogpp::Connector& connector,char *subdir,const std::string& logbook,
-                  char *uname, char *upwd, int message_id,
+std::string retrieve_elog(elogpp::Connector& connector,const std::string& subdir,const std::string& logbook,
+                  char *uname, char *upwd,const int& ID,
                   char attrib_name[maxNAttributes][NAME_LENGTH],
                   char attrib[maxNAttributes][NAME_LENGTH], char *text)
-/********************************************************************\
- *
- *  Routine: retrive_elog
- *
- *  Purpose: Retrive an ELog entry for edit/reply
- *
- *  Input:
- *    char   *host            Host name where ELog server runs
- *    int    port             ELog server port number
- *    char   *subdir          Subdirectoy to elog server
- *    int    ssl              Flag for using SSL layer
- *    char   *uname           User name
- *    char   *upwd            User password
- *    int    message_id       Message to retrieve
- *    char   *attrib_name     Attribute names
- *    char   *attrib          Attribute values
- *    char   *text            Message text
- *
- *  Function value:
- *    EL_SUCCESS              Successful completion
- *
- * \********************************************************************/
 {
   int i, n, first, index;
   char str[256];
@@ -319,9 +297,9 @@ std::string retrieve_elog(elogpp::Connector& connector,char *subdir,const std::s
   //strlcpy(str, experiment, sizeof(str));
   std::string encodedlogbook=url_encode(logbook);
 //  url_encode(logbook.c_str(), sizeof(logbook.c_str()));
-  if(subdir[0] && !logbook.empty()) sprintf(request + strlen(request), "%s/%s/%d?cmd=download", subdir, encodedlogbook.c_str(),message_id);
-  else if (subdir[0]) sprintf(request + strlen(request), "%s/%d?cmd=download", subdir,message_id);
-  else if(!logbook.empty()) sprintf(request + strlen(request), "%s/%d?cmd=download", encodedlogbook.c_str(), message_id);
+  if(!subdir.empty() && !logbook.empty()) sprintf(request + strlen(request), "%s/%s/%d?cmd=download", subdir.c_str(), encodedlogbook.c_str(),ID);
+  else if (!subdir.empty()) sprintf(request + strlen(request), "%s/%d?cmd=download", subdir.c_str(),ID);
+  else if(!logbook.empty()) sprintf(request + strlen(request), "%s/%d?cmd=download", encodedlogbook.c_str(),ID);
   strcat(request, " HTTP/1.0\r\n");
 
   sprintf(request + strlen(request), "User-Agent: ELOG\r\n");
@@ -442,40 +420,12 @@ connector.send(request);
 
 /*------------------------------------------------------------------*/
 
-int submit_elog(elogpp::Connector& connector,const Type &type, const int &ID,
-                char *subdir,const std::string& logbook, char *uname, char *upwd,
+int submit_elog(elogpp::Connector& connector,const Type &type, const int &ID,const std::string& subdir,const std::string& logbook, char *uname, char *upwd,
                 int quote_on_reply, int suppress, int encoding,
                 char attrib_name[maxNAttributes][NAME_LENGTH],
                 char attrib[maxNAttributes][NAME_LENGTH], int n_attr,
                 char *text, const std::vector<std::string>& attachments,
                 char *buffer[maxAttachments], int buffer_size[maxAttachments])
-/********************************************************************\
- *
- *  Routine: submit_elog
- *
- *  Purpose: Submit an ELog entry
- *
- *  Input:
- *    char   *host            Host name where ELog server runs
- *    in     port             ELog server port number
- *    int    ssl              SSL flag
- *    char   *subdir          Subdirectoy to elog server
- *    char   *uname           User name
- *    char   *upwd            User password
- *    int    suppress         Suppress Email notification
- *    int    encoding         0:ELCode,1:plain,2:HTML
- *    char   *attrib_name     Attribute names
- *    char   *attrib          Attribute values
- *    char   *text            Message text
- *
- *    char   afilename[]      File names of attachments
- *    char   *buffer[]        Attachment contents
- *    int    buffer_size[]    Size of buffer in bytes
- *
- *  Function value:
- *    EL_SUCCESS              Successful completion
- *
- * \********************************************************************/
 {
   int i, n, header_length, content_length, index;
   char host_name[256], boundary[80], str[80], *p;
@@ -797,9 +747,10 @@ int main(int argc, char *argv[]) {
   elogpp::Connector connector;
   std::vector<std::string> attachments;
   std::string logbook{""};
+  std::string subdir{""};
   
   char str[1000], uname[80], upwd[80];
-  char textfile[256], subdir[256];
+  char textfile[256];
   char *buffer[maxAttachments];
   int att_size[maxAttachments];
   int i, n, fh, n_att, n_attr, port,  quote_on_reply ,encoding, suppress, size, ssl, text_flag;
@@ -807,7 +758,6 @@ int main(int argc, char *argv[]) {
       attrib[maxNAttributes][NAME_LENGTH];
 
   text[0] = textfile[0] = uname[0] = upwd[0] = suppress = quote_on_reply = 0;
-  subdir[0] = 0;
   n_att = n_attr = encoding = 0;
   text_flag = 0;
 
@@ -831,8 +781,7 @@ int main(int argc, char *argv[]) {
         if (argv[i][1] == 'h')  connector.setHostname(std::string(argv[++i]));
         else if (argv[i][1] == 'p') connector.setPort(atoi(argv[++i]));
         else if (argv[i][1] == 'l') logbook=std::string(argv[++i]);
-        else if (argv[i][1] == 'd')
-          strcpy(subdir, argv[++i]);
+        else if (argv[i][1] == 'd')  subdir=std::string(argv[++i]);
         else if (argv[i][1] == 'u') {
           strcpy(uname, argv[++i]);
           strcpy(upwd, argv[++i]);
