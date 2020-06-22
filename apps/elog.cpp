@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include "Crypt.hpp"
 #include "Connector.hpp"
@@ -83,7 +84,12 @@ enum Type { Edit, Download, Reply, New };
 #endif
 #endif
 
-
+class Elog
+{
+public:
+private:
+  
+};
 
 
 
@@ -445,7 +451,7 @@ int submit_elog(elogpp::Connector& connector,const Type &type, const int &ID,
                 int quote_on_reply, int suppress, int encoding,
                 char attrib_name[maxNAttributes][NAME_LENGTH],
                 char attrib[maxNAttributes][NAME_LENGTH], int n_attr,
-                char *text, char afilename[maxAttachments][256],
+                char *text, const std::vector<std::string>& attachments,
                 char *buffer[maxAttachments], int buffer_size[maxAttachments])
 /********************************************************************\
  *
@@ -600,8 +606,7 @@ int submit_elog(elogpp::Connector& connector,const Type &type, const int &ID,
 
 
   content_length = 100000;
-  for (i = 0; i < maxAttachments; i++)
-    if (afilename[i][0])
+  for(std::size_t i = 0; i < attachments.size(); i++)
       content_length += buffer_size[i];
   content = (char *)malloc(content_length);
   if (content == nullptr) {
@@ -692,12 +697,12 @@ int submit_elog(elogpp::Connector& connector,const Type &type, const int &ID,
   content_length = strlen(content);
   p = content + content_length;
 
-  for (i = 0; i < maxAttachments; i++)
-    if (afilename[i][0]) {
+  for(std::size_t i = 0; i < attachments.size(); i++)
+  {
       sprintf(p,
               "Content-Disposition: form-data; name=\"attfile%d\"; "
               "filename=\"%s\"\r\n\r\n",
-              i + 1, afilename[i]);
+              i + 1, attachments[i].c_str());
 
       content_length += strlen(p);
       p += strlen(p);
@@ -797,9 +802,10 @@ int main(int argc, char *argv[]) {
   Type type{New};
   int ID{0};
   elogpp::Connector connector;
+  std::vector<std::string> attachments;
   char str[1000], uname[80], upwd[80];
   char logbook[32], textfile[256], subdir[256];
-  char *buffer[maxAttachments], attachment[maxAttachments][256];
+  char *buffer[maxAttachments];
   int att_size[maxAttachments];
   int i, n, fh, n_att, n_attr, port,  quote_on_reply ,encoding, suppress, size, ssl, text_flag;
   char attr_name[maxNAttributes][NAME_LENGTH],
@@ -811,7 +817,6 @@ int main(int argc, char *argv[]) {
   text_flag = 0;
 
   for (i = 0; i < maxAttachments; i++) {
-    attachment[i][0] = 0;
     buffer[i] = nullptr;
     att_size[i] = 0;
   }
@@ -849,8 +854,9 @@ int main(int argc, char *argv[]) {
                    "<attribute>=<value>\".\n");
             return 1;
           }
-        } else if (argv[i][1] == 'f')
-          strcpy(attachment[n_att++], argv[++i]);
+        } 
+        else if (argv[i][1] == 'f') attachments.push_back(std::string(argv[++i]));
+          //strcpy(attachment[n_att++], argv[++i]);
         else if (argv[i][1] == 'r') {
           type = Reply;
           ID = atoi(argv[++i]);
@@ -932,13 +938,12 @@ int main(int argc, char *argv[]) {
 
   /*---- open attachment file ----*/
 
-  for (i = 0; i < maxAttachments; i++) {
-    if (!attachment[i][0])
-      break;
+  for(std::size_t i = 0; i < attachments.size(); i++) 
+  {
 
-    fh = open(attachment[i], O_RDONLY | O_BINARY);
+    fh = open(attachments[i].c_str(), O_RDONLY | O_BINARY);
     if (fh < 0) {
-      printf("Attachment file \"%s\" does not exist.\n", attachment[i]);
+      printf("Attachment file \"%s\" does not exist.\n",attachments[i].c_str());
       return 1;
     }
 
@@ -949,7 +954,7 @@ int main(int argc, char *argv[]) {
 
     n = read(fh, buffer[i], att_size[i]);
     if (n < att_size[i]) {
-      printf("Cannot fully read attachment file \"%s\".\n", attachment[i]);
+      printf("Cannot fully read attachment file \"%s\".\n",attachments[i].c_str());
       return 1;
     }
     buffer[i][n] = 0;
@@ -958,7 +963,7 @@ int main(int argc, char *argv[]) {
   }
 
   /* now submit message */
-  submit_elog(connector,type, ID, subdir, logbook, uname, upwd,quote_on_reply, suppress, encoding, attr_name, attrib, n_attr,text, attachment, buffer, att_size);
+  submit_elog(connector,type, ID, subdir, logbook, uname, upwd,quote_on_reply, suppress, encoding, attr_name, attrib, n_attr,text, attachments, buffer, att_size);
 
   for (i = 0; i < maxAttachments; i++)
     if (buffer[i])
