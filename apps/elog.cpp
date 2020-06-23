@@ -25,6 +25,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <map>
 
 #include "Crypt.hpp"
 #include "Connector.hpp"
@@ -87,15 +88,12 @@ enum Type { Edit, Download, Reply, New };
 class Elog
 {
 public:
+  
 private:
   
 };
 
-
-
-
 #define NAME_LENGTH 500
-
 #define TEXT_SIZE 100000
 
 char text[TEXT_SIZE], old_text[TEXT_SIZE], new_text[TEXT_SIZE];
@@ -218,19 +216,6 @@ std::string url_encode(const std::string& ps)
 
 /*------------------------------------------------------------------*/
 
-void sgets(char *string, int size) {
-  char *p;
-
-  do {
-    p = fgets(string, size, stdin);
-  } while (p == nullptr);
-
-  if (strlen(p) > 0 && p[strlen(p) - 1] == '\n')
-    p[strlen(p) - 1] = 0;
-}
-
-/*------------------------------------------------------------------*/
-
 void add_crlf(char *buffer, int bufsize) {
   char *p;
   char *tmpbuf;
@@ -277,18 +262,9 @@ void convert_crlf(char *buffer, int bufsize) {
 }
 
 
-
-
-/*------------------------------------------------------------------*/
-
-char *content;
-
-std::string retrieve_elog(elogpp::Connector& connector,const std::string& subdir,const std::string& logbook,
-                  char *uname, char *upwd,const int& ID,
-                  char attrib_name[maxNAttributes][NAME_LENGTH],
-                  char attrib[maxNAttributes][NAME_LENGTH], char *text)
+std::string retrieve_elog(elogpp::Connector& connector,const std::string& subdir,const std::string& logbook, char *uname, char *upwd,const int& ID,char attrib_name[maxNAttributes][NAME_LENGTH],char attrib[maxNAttributes][NAME_LENGTH], char *text)
 {
-  int i, n, first, index;
+  int  first;
   char str[256];
   connector.connect();
   char request[100000];
@@ -306,27 +282,22 @@ std::string retrieve_elog(elogpp::Connector& connector,const std::string& subdir
 
   first = 1;
 
-  if (uname[0]) {
-    if (first)
-      sprintf(request + strlen(request), "Cookie: ");
+  if (uname[0]) 
+  {
+    if (first) sprintf(request + strlen(request), "Cookie: ");
     first = 0;
-
     sprintf(request + strlen(request), "unm=%s;", uname);
   }
 
-  if (upwd[0]) {
-    if (first)
-      sprintf(request + strlen(request), "Cookie: ");
+  if (upwd[0]) 
+  {
+    if (first) sprintf(request + strlen(request), "Cookie: ");
     first = 0;
-
-    sprintf(request + strlen(request), "upwd=%s;",
-            elogpp::do_crypt(upwd).c_str());
+    sprintf(request + strlen(request), "upwd=%s;", elogpp::do_crypt(upwd).c_str());
   }
 
   /* finish cookie line */
-  if (!first)
-    strcat(request, "\r\n");
-
+  if (!first) strcat(request, "\r\n");
   strcat(request, "\r\n");
 
 /* send request */
@@ -338,317 +309,246 @@ connector.send(request);
   connector.disconnect();
 
   /* check response status */
-  if (strstr(resp.c_str(), "$@MID@$:")) {
+  if(strstr(resp.c_str(), "$@MID@$:")) 
+  {
+    int index=0;
     /* separate attributes and message */
-
     const char* ph = strstr(resp.c_str(), "========================================\n");
-
     /* skip first line */
     const char* ps = strstr(resp.c_str(), "$@MID@$:");
-    while (*ps && *ps != '\n')
-      ps++;
-    while (*ps && (*ps == '\n' || *ps == '\r'))
-      ps++;
+    while (*ps && *ps != '\n') ps++;
+    while (*ps && (*ps == '\n' || *ps == '\r')) ps++;
 
-    for (index = 0; index < maxNAttributes; index++) {
-      if (ps >= ph)
-        break;
+    for(index = 0; index < maxNAttributes; index++) 
+    {
+      if (ps >= ph) break;
 
       strlcpy(attrib_name[index], ps, NAME_LENGTH);
-      if (strchr(attrib_name[index], ':'))
-        *(strchr(attrib_name[index], ':')) = 0;
+      if (strchr(attrib_name[index], ':')) *(strchr(attrib_name[index], ':')) = 0;
 
       ps += strlen(attrib_name[index]) + 2;
       strlcpy(attrib[index], ps, NAME_LENGTH);
 
-      for (i = 0; i < NAME_LENGTH; i++) {
-        if (attrib[index][i] == '\r' || attrib[index][i] == '\n')
-          attrib[index][i] = 0;
-
-        if (attrib[index][i] == 0)
-          break;
+      for(std::size_t i = 0; i < NAME_LENGTH; i++) 
+      {
+        if (attrib[index][i] == '\r' || attrib[index][i] == '\n') attrib[index][i] = 0;
+        if (attrib[index][i] == 0) break;
       }
 
       ps += strlen(attrib[index]);
-      while (*ps && (*ps == '\n' || *ps == '\r'))
-        ps++;
+      while (*ps && (*ps == '\n' || *ps == '\r')) ps++;
     }
 
     attrib_name[index][0] = 0;
     attrib[index][0] = 0;
 
     ph = strchr(ph, '\n') + 1;
-    if (*ph == '\r')
-      ph++;
+    if (*ph == '\r') ph++;
 
     strlcpy(text, ph, TEXT_SIZE);
 
     return resp;
   }
-
-  if (strstr(resp.c_str(), "302 Found")) {
-    if (strstr(resp.c_str(), "Location:")) {
-      if (strstr(resp.c_str(), "fail"))
-        printf("Error: Invalid user name or password\n");
-      else {
+  else if (strstr(resp.c_str(), "302 Found")) 
+  {
+    if(strstr(resp.c_str(), "Location:")) 
+    {
+      if (strstr(resp.c_str(), "fail")) printf("Error: Invalid user name or password\n");
+      else 
+      {
         strncpy(str, strstr(resp.c_str(), "Location:") + 10, sizeof(str));
-        if (strchr(str, '?'))
-          *strchr(str, '?') = 0;
-        if (strchr(str, '\n'))
-          *strchr(str, '\n') = 0;
-        if (strchr(str, '\r'))
-          *strchr(str, '\r') = 0;
-
-        if (strrchr(str, '/'))
-          printf("Message successfully transmitted, ID=%s\n",
-                 strrchr(str, '/') + 1);
-        else
-          printf("Message successfully transmitted, ID=%s\n", str);
+        if (strchr(str, '?')) *strchr(str, '?') = 0;
+        if (strchr(str, '\n')) *strchr(str, '\n') = 0;
+        if (strchr(str, '\r')) *strchr(str, '\r') = 0;
+        if (strrchr(str, '/')) printf("Message successfully transmitted, ID=%s\n", strrchr(str, '/') + 1);
+        else printf("Message successfully transmitted, ID=%s\n", str);
       }
     }
-  } else if (strstr(resp.c_str(), "Logbook Selection"))
-    printf("Error: No logbook specified\n");
-  else if (strstr(resp.c_str(), "enter password"))
-    printf("Error: Missing or invalid password\n");
-  else if (strstr(resp.c_str(), "form name=form1"))
-    printf("Error: Missing or invalid user name/password\n");
-  else
-    printf("Error transmitting message\n");
+  } 
+  else if (strstr(resp.c_str(), "Logbook Selection")) printf("Error: No logbook specified\n");
+  else if (strstr(resp.c_str(), "enter password")) printf("Error: Missing or invalid password\n");
+  else if (strstr(resp.c_str(), "form name=form1")) printf("Error: Missing or invalid user name/password\n");
+  else printf("Error transmitting message\n");
 
   throw 0;
 }
 
 /*------------------------------------------------------------------*/
 
-int submit_elog(elogpp::Connector& connector,const Type &type, const int &ID,const std::string&
-              subdir,const std::string& logbook, char *uname, char *upwd,
-                int quote_on_reply, int suppress, int encoding,
-                char attrib_name[maxNAttributes][NAME_LENGTH],
-                char attrib[maxNAttributes][NAME_LENGTH], int n_attr,
-                char *text, const std::vector<std::string>& attachments,
-                char *buffer[maxAttachments], int buffer_size[maxAttachments])
+int submit_elog(elogpp::Connector& connector,const Type &type, const int &ID,const std::string& subdir,const std::string& logbook, char *uname, char *upwd, int quote_on_reply, int suppress, int encoding, char attrib_name[maxNAttributes][NAME_LENGTH], char attrib[maxNAttributes][NAME_LENGTH], int n_attr, char *text, const std::vector<std::string>& attachments, char *buffer[maxAttachments], int buffer_size[maxAttachments])
 {
-  int i, n, header_length, content_length, index;
-  char host_name[256], boundary[80], str[80], *p;
+  int header_length, content_length;
+  char boundary[80], str[80], *p;
   char old_attrib_name[maxNAttributes + 1][NAME_LENGTH],
       old_attrib[maxNAttributes + 1][NAME_LENGTH];
 
       
   std::string response{""};
   if(type!=New) response=retrieve_elog(connector,subdir, logbook, uname, upwd, ID,old_attrib_name, old_attrib, old_text);
-  if (type == Edit || type == Download) {
-
+  if(type == Edit || type == Download) 
+  {
     /* update attributes */
-    for (index = 0; index < n_attr; index++) {
-      for (i = 0; i < maxNAttributes && old_attrib_name[i][0]; i++)
-        if (equal_ustring(attrib_name[index], old_attrib_name[i]))
-          break;
-
-      if (old_attrib_name[i][0])
-        strlcpy(old_attrib[i], attrib[index], NAME_LENGTH);
+    for(std::size_t index = 0; index < n_attr; index++) 
+    {
+      int i{0};
+      for( i = 0; i < maxNAttributes && old_attrib_name[i][0]; i++) if (equal_ustring(attrib_name[index], old_attrib_name[i])) break;
+      if(old_attrib_name[i][0]) strlcpy(old_attrib[i], attrib[index], NAME_LENGTH);
     }
 
     /* copy attributes */
-    for (i = 0; i < maxNAttributes && old_attrib_name[i][0]; i++) {
+    for(std::size_t i = 0; i < maxNAttributes && old_attrib_name[i][0]; i++) 
+    {
       strlcpy(attrib_name[i], old_attrib_name[i], NAME_LENGTH);
       strlcpy(attrib[i], old_attrib[i], NAME_LENGTH);
     }
-
-    n_attr = i;
-
-    if (text[0] == 0)
-      strlcpy(text, old_text, TEXT_SIZE);
+    if (text[0] == 0) strlcpy(text, old_text, TEXT_SIZE);
   }
 
-  if (type == Download) {
-    if (strstr(response.c_str(), "$@MID@$:"))
-      printf("%s", strstr(response.c_str(), "$@MID@$:"));
-    else
-      printf("%s", response.c_str());
+  if(type == Download) 
+  {
+    if (strstr(response.c_str(), "$@MID@$:")) printf("%s", strstr(response.c_str(), "$@MID@$:"));
+    else printf("%s", response.c_str());
     return 1;
   }
 
-  if (type == Reply) {
-
-
+  if (type == Reply) 
+  {
     /* update attributes */
-    for (index = 0; index < n_attr; index++) {
-      for (i = 0; i < maxNAttributes && old_attrib_name[i][0]; i++)
-        if (equal_ustring(attrib_name[index], old_attrib_name[i]))
-          break;
-
-      if (old_attrib_name[i][0])
-        strlcpy(old_attrib[i], attrib[index], NAME_LENGTH);
+    for(std::size_t index = 0; index < n_attr; index++) 
+    {
+      int i{0};
+      for(i = 0; i < maxNAttributes && old_attrib_name[i][0]; i++) if (equal_ustring(attrib_name[index], old_attrib_name[i])) break;
+      if(old_attrib_name[i][0]) strlcpy(old_attrib[i], attrib[index], NAME_LENGTH);
     }
 
     /* copy attributes */
-    for (i = 0; i < maxNAttributes && old_attrib_name[i][0]; i++) {
-      if (equal_ustring(old_attrib_name[i], "Reply to") ||
-          equal_ustring(old_attrib_name[i], "Date")) {
+    for(std::size_t i = 0; i < maxNAttributes && old_attrib_name[i][0]; i++) 
+    {
+      if (equal_ustring(old_attrib_name[i], "Reply to") || equal_ustring(old_attrib_name[i], "Date")) 
+      {
         attrib_name[i][0] = 0;
         attrib[i][0] = 0;
-      } else {
+      } 
+      else 
+      {
         strlcpy(attrib_name[i], old_attrib_name[i], NAME_LENGTH);
         strlcpy(attrib[i], old_attrib[i], NAME_LENGTH);
       }
     }
 
-    n_attr = i;
-
     /* check encoding */
     std::string old_encoding = "plain";
+    int i{0};
+    for(i = 0; i < n_attr; i++) if (equal_ustring(attrib_name[i], "encoding")) break;
 
-    for (i = 0; i < n_attr; i++)
-      if (equal_ustring(attrib_name[i], "encoding"))
-        break;
+    if (i < n_attr) old_encoding = attrib[i];
 
-    if (i < n_attr)
-      old_encoding = attrib[i];
-
-    if (quote_on_reply) {
+    if (quote_on_reply) 
+    {
       strlcpy(new_text, text, sizeof(new_text));
-
       /* precede old text with "> " */
       text[0] = 0;
       p = old_text;
-
-      do {
-        if (strchr(p, '\n')) {
+      do 
+      {
+        if (strchr(p, '\n')) 
+        {
           *strchr(p, '\n') = 0;
-
-          if (old_encoding[0] == 'H') {
+          if (old_encoding[0] == 'H') 
+          {
             strlcat(text, "> ", TEXT_SIZE);
             strlcat(text, p, TEXT_SIZE);
             strlcat(text, "<br>\n", TEXT_SIZE);
-          } else {
+          } 
+          else 
+          {
             strlcat(text, "> ", TEXT_SIZE);
             strlcat(text, p, TEXT_SIZE);
             strlcat(text, "\n", TEXT_SIZE);
           }
-
           p += strlen(p) + 1;
           if (*p == '\n')
             p++;
-        } else {
-          if (old_encoding[0] == 'H') {
+        } 
+        else 
+        {
+          if (old_encoding[0] == 'H') 
+          {
             strlcat(text, "> ", TEXT_SIZE);
             strlcat(text, p, TEXT_SIZE);
             strlcat(text, "<p>\n", TEXT_SIZE);
-          } else {
+          } 
+          else 
+          {
             strlcat(text, "> ", TEXT_SIZE);
             strlcat(text, p, TEXT_SIZE);
             strlcat(text, "\n\n", TEXT_SIZE);
           }
-
           break;
         }
 
       } while (1);
-
       strlcat(text, new_text, TEXT_SIZE);
     }
   }
  
   connector.connect();
-
-
   content_length = 100000;
-  for(std::size_t i = 0; i < attachments.size(); i++)
-      content_length += buffer_size[i];
-  content = (char *)malloc(content_length);
-  if (content == nullptr) {
-    printf("Not enough memory\n");
+  for(std::size_t i = 0; i < attachments.size(); i++) content_length += buffer_size[i];
+  char *content = (char *)malloc(content_length);
+  if (content == nullptr) 
+  {
+    std::cout<<"Not enough memory\n";
     return -1;
   }
 
   /* compose content */
   srand((unsigned)time(nullptr));
-  sprintf(boundary, "---------------------------%04X%04X%04X", rand(), rand(),
-          rand());
+  sprintf(boundary, "---------------------------%04X%04X%04X", rand(), rand(),rand());
   strcpy(content, boundary);
-  strcat(content,
-         "\r\nContent-Disposition: form-data; name=\"cmd\"\r\n\r\nSubmit\r\n");
+  strcat(content,"\r\nContent-Disposition: form-data; name=\"cmd\"\r\n\r\nSubmit\r\n");
 
-  if (uname[0])
-    sprintf(content + strlen(content),
-            "%s\r\nContent-Disposition: form-data; name=\"unm\"\r\n\r\n%s\r\n",
-            boundary, uname);
+  if (uname[0]) sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"unm\"\r\n\r\n%s\r\n",boundary, uname);
 
-  if (upwd[0]) {
-
-    sprintf(content + strlen(content),
-            "%s\r\nContent-Disposition: form-data; name=\"upwd\"\r\n\r\n%s\r\n",
-            boundary, elogpp::do_crypt(upwd).c_str());
+  if (upwd[0]) 
+  {
+    sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"upwd\"\r\n\r\n%s\r\n",boundary, elogpp::do_crypt(upwd).c_str());
   }
 
-  if(!logbook.empty()) sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"exp\"\r\n\r\n%s\r\n",
-            boundary,logbook.c_str());
+  if(!logbook.empty()) sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"exp\"\r\n\r\n%s\r\n",boundary,logbook.c_str());
 
-  if (type == Reply)
-    sprintf(
-        content + strlen(content),
-        "%s\r\nContent-Disposition: form-data; name=\"reply_to\"\r\n\r\n%d\r\n",
-        boundary, ID);
+  if (type == Reply) sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"reply_to\"\r\n\r\n%d\r\n",boundary, ID);
 
-  if (type == Edit) {
-    sprintf(
-        content + strlen(content),
-        "%s\r\nContent-Disposition: form-data; name=\"edit_id\"\r\n\r\n%d\r\n",
-        boundary, ID);
-    sprintf(
-        content + strlen(content),
-        "%s\r\nContent-Disposition: form-data; name=\"skiplock\"\r\n\r\n1\r\n",
-        boundary);
+  if (type == Edit) 
+  {
+    sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"edit_id\"\r\n\r\n%d\r\n",boundary, ID);
+    sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"skiplock\"\r\n\r\n1\r\n",boundary);
   }
 
-  if (suppress)
-    sprintf(
-        content + strlen(content),
-        "%s\r\nContent-Disposition: form-data; name=\"suppress\"\r\n\r\n1\r\n",
-        boundary);
+  if (suppress) sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"suppress\"\r\n\r\n1\r\n",boundary);
 
-  if (encoding == 0)
-    sprintf(content + strlen(content),
-            "%s\r\nContent-Disposition: form-data; "
-            "name=\"encoding\"\r\n\r\nELCode\r\n",
-            boundary);
-  else if (encoding == 1)
-    sprintf(content + strlen(content),
-            "%s\r\nContent-Disposition: form-data; "
-            "name=\"encoding\"\r\n\r\nplain\r\n",
-            boundary);
-  else if (encoding == 2)
-    sprintf(content + strlen(content),
-            "%s\r\nContent-Disposition: form-data; "
-            "name=\"encoding\"\r\n\r\nHTML\r\n",
-            boundary);
+  if (encoding == 0) sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"encoding\"\r\n\r\nELCode\r\n",boundary);
+  else if (encoding == 1) sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"encoding\"\r\n\r\nplain\r\n",boundary);
+  else if (encoding == 2) sprintf(content + strlen(content), "%s\r\nContent-Disposition: form-data; name=\"encoding\"\r\n\r\nHTML\r\n",boundary);
 
-  for (i = 0; i < n_attr; i++) {
+  for(std::size_t i = 0; i < n_attr; i++) 
+  {
     strcpy(str, attrib_name[i]);
-    if (str[0]) {
+    if (str[0]) 
+    {
       stou(str);
-      sprintf(content + strlen(content),
-              "%s\r\nContent-Disposition: form-data; name=\"%s\"\r\n\r\n%s\r\n",
-              boundary, str, attrib[i]);
+      sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"%s\"\r\n\r\n%s\r\n",boundary, str, attrib[i]);
     }
   }
 
-  if (text[0])
-    sprintf(content + strlen(content),
-            "%s\r\nContent-Disposition: form-data; "
-            "name=\"Text\"\r\n\r\n%s\r\n%s\r\n",
-            boundary, text, boundary);
+  if (text[0]) sprintf(content + strlen(content), "%s\r\nContent-Disposition: form-data; name=\"Text\"\r\n\r\n%s\r\n%s\r\n",boundary, text, boundary);
 
   content_length = strlen(content);
   p = content + content_length;
 
   for(std::size_t i = 0; i < attachments.size(); i++)
   {
-      sprintf(p,
-              "Content-Disposition: form-data; name=\"attfile%d\"; "
-              "filename=\"%s\"\r\n\r\n",
-              i + 1, attachments[i].c_str());
-
+      sprintf(p,"Content-Disposition: form-data; name=\"attfile%d\"; filename=\"%s\"\r\n\r\n",i + 1, attachments[i].c_str());
       content_length += strlen(p);
       p += strlen(p);
       memcpy(p, buffer[i], buffer_size[i]);
@@ -663,20 +563,16 @@ int submit_elog(elogpp::Connector& connector,const Type &type, const int &ID,con
   /* compose request */
   char request[100000];
   strcpy(request, "POST /");
-  if (subdir[0])
-    sprintf(request + strlen(request), "%s/", subdir);
+  if (subdir[0]) sprintf(request + strlen(request), "%s/", subdir);
   if(!logbook.empty()) 
   {
     sprintf(request + strlen(request), "%s/",url_encode(logbook).c_str());
   }
   strcat(request, " HTTP/1.0\r\n");
 
-  sprintf(request + strlen(request),
-          "Content-Type: multipart/form-data; boundary=%s\r\n", boundary);
-  if (connector.getPort()!= 80)
-    sprintf(str, "%s:%d", connector.getHostname().c_str(),connector.getPort());
-  else
-    sprintf(str, "%s", connector.getHostname().c_str());
+  sprintf(request + strlen(request), "Content-Type: multipart/form-data; boundary=%s\r\n", boundary);
+  if (connector.getPort()!= 80) sprintf(str, "%s:%d", connector.getHostname().c_str(),connector.getPort());
+  else sprintf(str, "%s", connector.getHostname().c_str());
   sprintf(request + strlen(request), "Host: %s\r\n", str);
   sprintf(request + strlen(request), "User-Agent: ELOG\r\n");
   sprintf(request + strlen(request), "Content-Length: %d\r\n", content_length);
@@ -693,56 +589,51 @@ connector.send(content,content_length);
   connector.disconnect();
 
   /* check response status */
-  if (strstr(resp.c_str(), "302 Found")) {
-    if (strstr(resp.c_str(), "Location:")) {
-      if (strstr(resp.c_str(), "has moved"))
-        printf("Error: elogd server has moved to another location\n");
-      else if (strstr(resp.c_str(), "fail"))
-        printf("Error: Invalid user name or password\n");
-      else {
+  if (strstr(resp.c_str(), "302 Found")) 
+  {
+    if (strstr(resp.c_str(), "Location:")) 
+    {
+      if (strstr(resp.c_str(), "has moved")) printf("Error: elogd server has moved to another location\n");
+      else if (strstr(resp.c_str(), "fail")) printf("Error: Invalid user name or password\n");
+      else 
+      {
         strncpy(str, strstr(resp.c_str(), "Location:") + 10, sizeof(str));
-        if (strchr(str, '?'))
-          *strchr(str, '?') = 0;
-        if (strchr(str, '\n'))
-          *strchr(str, '\n') = 0;
-        if (strchr(str, '\r'))
-          *strchr(str, '\r') = 0;
+        if (strchr(str, '?')) *strchr(str, '?') = 0;
+        if (strchr(str, '\n')) *strchr(str, '\n') = 0;
+        if (strchr(str, '\r')) *strchr(str, '\r') = 0;
 
-        if (strrchr(str, '/'))
-          printf("Message successfully transmitted, ID=%s\n",
-                 strrchr(str, '/') + 1);
-        else
-          printf("Message successfully transmitted, ID=%s\n", str);
+        if (strrchr(str, '/')) printf("Message successfully transmitted, ID=%s\n", strrchr(str, '/') + 1);
+        else printf("Message successfully transmitted, ID=%s\n", str);
       }
-    } else
-      printf("Message successfully transmitted\n");
-  } else if (strstr(resp.c_str(), "Logbook Selection"))
-    printf("Error: No logbook specified\n");
-  else if (strstr(resp.c_str(), "enter password"))
-    printf("Error: Missing or invalid password\n");
-  else if (strstr(resp.c_str(), "Error: Attribute")) {
-    if (strstr(resp.c_str(), "not existing")) {
+    } 
+    else printf("Message successfully transmitted\n");
+  } 
+  else if (strstr(resp.c_str(), "Logbook Selection")) printf("Error: No logbook specified\n");
+  else if (strstr(resp.c_str(), "enter password")) printf("Error: Missing or invalid password\n");
+  else if (strstr(resp.c_str(), "Error: Attribute")) 
+  {
+    if (strstr(resp.c_str(), "not existing")) 
+    { 
       strncpy(str, strstr(resp.c_str(), "Error: Attribute") + 27, sizeof(str));
-      if (strchr(str, '<'))
-        *strchr(str, '<') = 0;
+      if (strchr(str, '<')) *strchr(str, '<') = 0;
       printf("Error: Non existing attribute option \"%s\"\n", str);
-    } else {
+    } 
+    else 
+    {
       strncpy(str, strstr(resp.c_str(), "Error: Attribute") + 20, sizeof(str));
-      if (strchr(str, '<'))
-        *strchr(str, '<') = 0;
+      if (strchr(str, '<')) *strchr(str, '<') = 0;
       printf("Error: Missing required attribute \"%s\"\n", str);
     }
-  } else if (strstr(resp.c_str(), "form name=form1"))
-    printf("Error: Missing or invalid user name/password\n");
-  else
-    printf("Error transmitting message\n");
-
+  } 
+  else if (strstr(resp.c_str(), "form name=form1")) printf("Error: Missing or invalid user name/password\n");
+  else printf("Error transmitting message\n");
   return 1;
 }
 
 /*------------------------------------------------------------------*/
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) 
+{
   Type type{New};
   int ID{0};
   elogpp::Connector connector;
@@ -750,26 +641,29 @@ int main(int argc, char *argv[]) {
   std::string logbook{""};
   std::string subdir{""};
   std::string textfile{""};
+  bool text_flag{false};
+  std::map<std::string,std::string> attributes;
   
   
   char str[1000], uname[80], upwd[80];
   char *buffer[maxAttachments];
   int att_size[maxAttachments];
-  int i, n, fh, n_att, n_attr, port,  quote_on_reply ,encoding, suppress, size, ssl, text_flag;
+  int i, n, n_att, n_attr, port,  quote_on_reply ,encoding, suppress, size;
   char attr_name[maxNAttributes][NAME_LENGTH],
       attrib[maxNAttributes][NAME_LENGTH];
 
   text[0] = uname[0] = upwd[0] = suppress = quote_on_reply = 0;
   n_att = n_attr = encoding = 0;
-  text_flag = 0;
 
-  for (i = 0; i < maxAttachments; i++) {
+  for(std::size_t i = 0; i < maxAttachments; i++) 
+  {
     buffer[i] = nullptr;
     att_size[i] = 0;
   }
 
   /* parse command line parameters */
-  for (i = 1; i < argc; i++) {
+  for(std::size_t i = 1; i < argc; i++) 
+  {
     if (argv[i][0] == '-' && argv[i][1] == 'v') connector.setVerbosity(true);
     else if (argv[i][0] == '-' && argv[i][1] == 's') connector.setSSL(true);
     else if (argv[i][0] == '-' && argv[i][1] == 'q')
@@ -784,47 +678,60 @@ int main(int argc, char *argv[]) {
         else if (argv[i][1] == 'p') connector.setPort(atoi(argv[++i]));
         else if (argv[i][1] == 'l') logbook=std::string(argv[++i]);
         else if (argv[i][1] == 'd')  subdir=std::string(argv[++i]);
-        else if (argv[i][1] == 'u') {
+        else if (argv[i][1] == 'u') 
+        {
           strcpy(uname, argv[++i]);
           strcpy(upwd, argv[++i]);
-        } else if (argv[i][1] == 'a') {
+        } 
+        else if (argv[i][1] == 'a') 
+        {
           strcpy(str, argv[++i]);
-          if (strchr(str, '=')) {
+          if (strchr(str, '=')) 
+          {
+            
+            //attributes.emplace(
             strcpy(attrib[n_attr], strchr(str, '=') + 1);
             *strchr(str, '=') = 0;
             strcpy(attr_name[n_attr], str);
             n_attr++;
-          } else {
-            printf("Error: Attributes must be supplied in the form \"-a "
-                   "<attribute>=<value>\".\n");
+          } 
+          else 
+          {
+            std::cout<<"Error: Attributes must be supplied in the form \"-a <attribute>=<value>\".\n";
             return 1;
           }
         } 
         else if (argv[i][1] == 'f') attachments.push_back(std::string(argv[++i]));
-          //strcpy(attachment[n_att++], argv[++i]);
-        else if (argv[i][1] == 'r') {
+        else if (argv[i][1] == 'r') 
+        {
           type = Reply;
           ID = atoi(argv[++i]);
-        } else if (argv[i][1] == 'e') {
+        } 
+        else if (argv[i][1] == 'e') 
+        {
           type = Edit;
           ID = atoi(argv[++i]);
-        } else if (argv[i][1] == 'w') {
+        } 
+        else if (argv[i][1] == 'w') 
+        {
           type = Download;
           if (argv[i + 1][0] == 'l') ID = -1;
           else
           ID = std::stoi(argv[++i]); 
-        } else if (argv[i][1] == 'n')
-          encoding = atoi(argv[++i]);
+        } 
+        else if (argv[i][1] == 'n') encoding = atoi(argv[++i]);
         else if (argv[i][1] == 'm') 
         {
           textfile=std::string(argv[++i]);
-          text_flag = 1;
-        } else
-          usage();
-      } else {
+          text_flag = true;
+        } 
+        else usage();
+      } 
+      else 
+      {
         strcpy(text, argv[i]);
         convert_crlf(text, sizeof(text));
-        text_flag = 1;
+        text_flag = true;
       }
     }
   }
@@ -836,8 +743,6 @@ int main(int argc, char *argv[]) {
   }
 
 
-  fh = -1;
-
   if(!textfile.empty()) 
   {
     int fh = open(textfile.c_str(), O_RDONLY | O_BINARY);
@@ -848,7 +753,6 @@ int main(int argc, char *argv[]) {
     }
     int size = (int)lseek(fh, 0, SEEK_END);
     lseek(fh, 0, SEEK_SET);
-
     if (size > (int)(sizeof(text) - 1)) 
     {
       std::cout<<"Message file \""<<textfile<<"\" is too long ("<<sizeof(text)<<" bytes max).\n";
@@ -861,35 +765,33 @@ int main(int argc, char *argv[]) {
       return 1;
     }
     close(fh);
+    add_crlf(text, sizeof(text));
   }
 
-  if (text_flag == 0 && (type==New || type==Reply)) {
+  if(text_flag == false && (type==New || type==Reply)) 
+  {
     /* read from stdin */
-
-    n = 0;
-
-    do {
+    int n{0};
+    int i{0};
+    do 
+    {
       i = getchar();
-
       text[n++] = i;
-
     } while (i != EOF);
-
-    if (n > 0)
-      text[n - 1] = 0;
+    if(n > 0) text[n - 1] = 0;
+    /* change CR -> CRLF for unix text files */
+    add_crlf(text, sizeof(text));
   }
-
-  /* change CR -> CRLF for unix text files */
-  add_crlf(text, sizeof(text));
 
   /*---- open attachment file ----*/
 
   for(std::size_t i = 0; i < attachments.size(); i++) 
   {
 
-    fh = open(attachments[i].c_str(), O_RDONLY | O_BINARY);
-    if (fh < 0) {
-      printf("Attachment file \"%s\" does not exist.\n",attachments[i].c_str());
+    int fh = open(attachments[i].c_str(), O_RDONLY | O_BINARY);
+    if (fh < 0) 
+    {
+      std::cout<<"Attachment file \""<<attachments[i].c_str()<<"\" does not exist.\n";
       return 1;
     }
 
@@ -899,8 +801,9 @@ int main(int argc, char *argv[]) {
     buffer[i] = (char *)malloc(att_size[i] + 1);
 
     n = read(fh, buffer[i], att_size[i]);
-    if (n < att_size[i]) {
-      printf("Cannot fully read attachment file \"%s\".\n",attachments[i].c_str());
+    if (n < att_size[i]) 
+    {
+      std::cout<<"Cannot fully read attachment file \""<<attachments[i].c_str()<<"\".\n";
       return 1;
     }
     buffer[i][n] = 0;
@@ -911,9 +814,6 @@ int main(int argc, char *argv[]) {
   /* now submit message */
   submit_elog(connector,type, ID, subdir, logbook, uname, upwd,quote_on_reply, suppress, encoding, attr_name, attrib, n_attr,text, attachments, buffer, att_size);
 
-  for (i = 0; i < maxAttachments; i++)
-    if (buffer[i])
-      free(buffer[i]);
-
+  for(std::size_t i = 0; i < maxAttachments; i++) if(buffer[i]) free(buffer[i]);
   return 0;
 }
