@@ -62,7 +62,6 @@ enum Type { Edit, Download, Reply, New };
 
 #include <ctype.h>
 #include <fcntl.h>
-#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -73,13 +72,7 @@ enum Type { Edit, Download, Reply, New };
 #include <io.h>
 #include <windows.h>
 #else
-#include <netdb.h>
-#include <netinet/in.h>
-#include <signal.h>
-#include <sys/socket.h>
-#include <sys/time.h>
-#include <unistd.h>
-#define closesocket(s) ::close(s)
+ #include <unistd.h>
 #ifndef O_BINARY
 #define O_BINARY 0
 #endif
