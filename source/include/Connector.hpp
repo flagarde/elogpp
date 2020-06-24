@@ -24,6 +24,7 @@ namespace elogpp
     ~Connector();
     std::string receive();
     void send(char request[100000],std::size_t length=0);
+    void send(const std::string& request);
   private:
     int ssl_connect();
     std::string m_Hostname{""};

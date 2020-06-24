@@ -14,6 +14,7 @@ set(ELOGCPP_PUBLIC_HEADERS
 	include/Logbook.hpp
 	include/Connector.hpp
 	include/Crypt.hpp
+	include/Elog.hpp
 )
 
 set(ELOGCPP_SOURCES 
@@ -26,6 +27,7 @@ set(ELOGCPP_SOURCES
 	src/ElogUser.cpp  
 	src/LogBook.cpp
 	src/Crypt.cpp
+	src/Elog.cpp
 )
 
 add_library(Connector STATIC src/Connector.cpp)

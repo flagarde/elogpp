@@ -179,7 +179,21 @@ namespace elogpp
       puts(request);
     }
   }
-  
+  void Connector::send(const std::string& request)
+  {
+    std::size_t length=request.size()+1;
+    #ifdef HAVE_SSL
+    if(m_SSL)
+      SSL_write(m_SSL_con,request.c_str(),length);
+    else
+      #endif
+      ::send(m_Sock,request.c_str(),length,0);
+    if(m_Verbose) 
+    {
+      std::cout<<"Request sent to host:\n";
+      puts(request.c_str());
+    }
+  }
   int Connector::ssl_connect()
   {
     #ifdef HAVE_SSL
