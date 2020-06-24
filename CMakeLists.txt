@@ -67,24 +67,6 @@ if (NOT TARGET jsoncpp)
                       )
 endif()
 
-if (NOT TARGET pstreams)
-  set(pstreams_repository "https://github.com/RPClab/pstreams" )
-  set( pstreams_version "master" )
-  # ----- pstreams package -----
-  ExternalProject_Add( 
-                      pstreams
-                      GIT_REPOSITORY ${pstreams_repository}
-                      GIT_TAG ${pstreams_version}
-                      GIT_PROGRESS TRUE
-                      GIT_SHALLOW TRUE
-                      CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} -DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}
-                      PREFIX ${CMAKE_CURRENT_BINARY_DIR}/pstreams-prefix
-                      SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/pstreams
-                      INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
-                      UPDATE_DISCONNECTED TRUE
-                      )
-endif()
-
 configure_file("${PROJECT_SOURCE_DIR}/confs/Elog.json" "${CMAKE_INSTALL_PREFIX}/confs/Elog_DEMO.json" COPYONLY)
 
 add_subdirectory(source)
