@@ -9,10 +9,11 @@
 
 namespace elogpp
 {
-ElogEntry ElogManager::CreateEntry()
+  
+ElogEntry ElogManager::createEntry()
 {
-    ElogEntry entry;
-    return std::move(entry);
+  ElogEntry entry;
+  return std::move(entry);
 }
 
 /*void ElogManager::SetDefaultUser(std::string user)
@@ -22,30 +23,30 @@ ElogEntry ElogManager::CreateEntry()
 }*/
 
 
-void ElogManager::PrintServer(std::string server)
+void ElogManager::printServer(const std::string& server)
 {
-    conf.PrintServer(server);
+  m_Conf.printServer(server);
 }
 
-void ElogManager::PrintUser(std::string user)
+void ElogManager::printUser(const std::string& user)
 {
-    conf.PrintUser();
+  m_Conf.printUser();
 }
 
-void ElogManager::SetVerbosity(bool verbosity)
+void ElogManager::setVerbosity(const bool& verbosity)
 {
-    Verbose=verbosity;
+  m_Verbose=verbosity;
 }
 
-bool ElogManager::IsVerbose()
+bool ElogManager::isVerbose()
 {
-    return Verbose;
+  return m_Verbose;
 }
 
-void ElogManager::Print()
+void ElogManager::print()
 {
-    PrintServer();
-    PrintUser();
+  printServer();
+  printUser();
 }
 
 }

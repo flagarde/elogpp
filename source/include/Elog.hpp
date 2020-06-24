@@ -141,6 +141,10 @@ public:
   {
     return m_Attributes;
   }
+  std::vector<std::string> getAttachments()
+  {
+    return m_Attachments;
+  }
 private:
   constexpr static const  int m_maxAttachments{50};
   constexpr static const int m_maxNAttributes{50};

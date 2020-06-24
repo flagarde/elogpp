@@ -9,12 +9,12 @@
             "SSL":false,
             "Logbooks":
             [
-                {"Name":"test", "Description":"Elog test"}
+                {"Name":"Test", "Description":"Elog test"}
             ]
         }
     ],
     "ElogUsers":
     [
-        {"Name":"DAQ","Password":"12345678"}
+        {"Name":"toto","Password":"123456"}
     ]
 }

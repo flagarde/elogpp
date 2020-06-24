@@ -7,115 +7,117 @@
 
 namespace elogpp
 {
-ElogUser ElogConfig::GetUser(std::string user)
+  
+ElogUser ElogConfig::getUser(const std::string& user)
 {
-    if(HasUser(user)) return Users[user];
-    else return ElogUser();
+  if(hasUser(user)) return m_Users[user];
+  else throw;
 }
 
-ElogServer ElogConfig::GetServer(std::string server)
+ElogServer ElogConfig::getServer(const std::string& server)
 {
-    if(HasServer(server)) return Servers[server];
-    else return ElogServer();
+  if(hasServer(server)) return m_Servers[server];
+  else throw;
 }
 
-bool ElogConfig::HasUser(std::string user)
+bool ElogConfig::hasUser(const std::string& user)
 {
-    if(Users.find(user)!=Users.end()) return true;
-    else return false;
+  if(m_Users.find(user)!=m_Users.end()) return true;
+  else return false;
 }
 
-bool ElogConfig::HasServer(std::string server)
+bool ElogConfig::hasServer(const std::string& server)
 {
-    if(Servers.find(server)!=Servers.end()) return true;
-    else return false;
+  if(m_Servers.find(server)!=m_Servers.end()) return true;
+  else return false;
 }
 
 ElogConfig::ElogConfig()
 {
-   ExtractElogServersInfos(OpenJSONFile("ElogServerConfFile"));
-   ExtractElogUsersInfos(OpenJSONFile("ElogServerConfFile"));
+  extractElogServersInfos(openJSONFile("ElogServerConfFile"));
+  extractElogUsersInfos(openJSONFile("ElogServerConfFile"));
 }
 
-std::string ElogConfig::getEnvVar( std::string const & key )
+std::string ElogConfig::getEnvVar(const std::string& key )
 {
-    if(std::getenv( key.c_str() )==nullptr) return "";
-    else return std::string(std::getenv( key.c_str() ));
+  if(std::getenv( key.c_str() )==nullptr) return "";
+  else return std::string(std::getenv( key.c_str() ));
 }
 
-Json::Value ElogConfig::OpenJSONFile(std::string envVar)
+Json::Value ElogConfig::openJSONFile(const std::string& envVar)
 {
-    Json::CharReaderBuilder builder;
-    Json::Value obj;   // will contain the root value after parsing.
-    std::string errs;
-    std::string FileName=getEnvVar(envVar.c_str());
-    if(FileName=="")
-    {
-        std::cout<<"Please add "<<envVar<<" as variable environment ! \n";
-        std::exit(2);
-    }
-    std::ifstream ConfFile(FileName.c_str(),std::ifstream::binary);
-    bool ok = Json::parseFromStream(builder,ConfFile,&obj,&errs);
-    if ( !ok )
-    {
-        std::cout  << errs << "\n";
-    }
-    return obj;
+  Json::CharReaderBuilder builder;
+  Json::Value obj;   // will contain the root value after parsing.
+  std::string errs;
+  std::string FileName=getEnvVar(envVar.c_str());
+  if(FileName=="")
+  {
+    std::cout<<"Please add "<<envVar<<" as variable environment ! \n";
+    std::exit(2);
+  }
+  std::ifstream ConfFile(FileName.c_str(),std::ifstream::binary);
+  bool ok = Json::parseFromStream(builder,ConfFile,&obj,&errs);
+  if ( !ok )
+  {
+    std::cout  << errs << "\n";
+  }
+  return obj;
 }
 
-void ElogConfig::ExtractElogUsersInfos(Json::Value root)
+void ElogConfig::extractElogUsersInfos(const Json::Value& root)
 {
-    const Json::Value& elogusers = root["ElogUsers"];
-    for(unsigned int i=0; i<elogusers.size();++i)
-    {
-        ElogUser user;
-        user.SetName(elogusers[i]["Name"].asString());
-        user.SetPassword(elogusers[i]["Password"].asString());
-        Users.insert(std::pair<std::string,ElogUser>(user.GetName(),std::move(user)));
-    }
+  const Json::Value& elogusers = root["ElogUsers"];
+  for(unsigned int i=0; i<elogusers.size();++i)
+  {
+    ElogUser user;
+    user.setName(elogusers[i]["Name"].asString());
+    user.setPassword(elogusers[i]["Password"].asString());
+    m_Users.insert(std::pair<std::string,ElogUser>(user.getName(),std::move(user)));
+  }
 }
 
-void ElogConfig::ExtractElogServersInfos(Json::Value root)
+void ElogConfig::extractElogServersInfos(const Json::Value& root)
 {
-    const Json::Value& elogservers = root["ElogServers"];
-    for(unsigned int i=0; i<elogservers.size();++i)
+  const Json::Value& elogservers = root["ElogServers"];
+  for(unsigned int i=0; i<elogservers.size();++i)
+  {
+    ElogServer server;
+    server.setName(elogservers[i]["Name"].asString());
+    server.setDescription(elogservers[i]["Description"].asString());
+    server.setHostname(elogservers[i]["Hostname"].asString());
+    server.setPort(elogservers[i]["Port"].asString());
+    server.setSSL(elogservers[i]["SSL"].asBool());
+    server.setSubDir(elogservers[i]["SubDir"].asString());
+    const Json::Value& logbooks = elogservers[i]["Logbooks"]; 
+    for (unsigned int j = 0; j < logbooks.size(); ++j)
     {
-        ElogServer server;
-        server.SetName(elogservers[i]["Name"].asString());
-        server.SetDescription(elogservers[i]["Description"].asString());
-        server.SetHostname(elogservers[i]["Hostname"].asString());
-        server.SetPort(elogservers[i]["Port"].asString());
-        server.SetSSL(elogservers[i]["SSL"].asBool());
-        server.SetSubDir(elogservers[i]["SubDir"].asString());
-        const Json::Value& logbooks = elogservers[i]["Logbooks"]; 
-        for (unsigned int j = 0; j < logbooks.size(); ++j)
-        {
-            Logbook logbook;
-            logbook.SetName(logbooks[j]["Name"].asString());
-            logbook.SetDescription(logbooks[j]["Description"].asString());
-            server.AddLogbook(logbook);
-        }
-        Servers.insert(std::pair<std::string,ElogServer>(server.GetName(),std::move(server)));
+      Logbook logbook;
+      logbook.setName(logbooks[j]["Name"].asString());
+      logbook.setDescription(logbooks[j]["Description"].asString());
+      server.addLogbook(logbook);
     }
+    m_Servers.insert(std::pair<std::string,ElogServer>(server.getName(),std::move(server)));
+  }
 }
 
-void ElogConfig::PrintServer(std::string server)
+void ElogConfig::printServer(const std::string& server)
 {
-    if(server!="")
-    {
-        if(Servers.find(server)!=Servers.end()) Servers[server].Print();
-        else std::cout<<"Server with name "<<server<<" unknown ! Please check your configuration file ! \n";
-    }
-    else for(std::map<std::string,ElogServer>::iterator it=Servers.begin();it!=Servers.end();++it) it->second.Print();
+  if(server!="")
+  {
+    if(m_Servers.find(server)!=m_Servers.end()) m_Servers[server].print();
+    else std::cout<<"Server with name "<<server<<" unknown ! Please check your configuration file ! \n";
+  }
+  else for(std::map<std::string,ElogServer>::iterator it=m_Servers.begin();it!=m_Servers.end();++it) it->second.print();
 }
 
-void ElogConfig::PrintUser(std::string user)
+void ElogConfig::printUser(const std::string& user)
 {
-    if(user!="")
-    {
-        if(Users.find(user)!=Users.end()) Users[user].Print();
-        else std::cout<<"Server with name "<<user<<" unknown ! Please check your configuration file ! \n";
-    }
-    else for(std::map<std::string,ElogUser>::iterator it=Users.begin();it!=Users.end();++it) it->second.Print();
+  if(user!="")
+  {
+    if(m_Users.find(user)!=m_Users.end()) m_Users[user].print();
+    else std::cout<<"Server with name "<<user<<" unknown ! Please check your configuration file ! \n";
+  }
+  else for(std::map<std::string,ElogUser>::iterator it=m_Users.begin();it!=m_Users.end();++it) it->second.print();
 }
+
 }

@@ -304,6 +304,7 @@ namespace elogpp
     
     if(m_Type == Download) 
     {
+      //m_ID=std::stoi(m_Attributes["$@MID@$:"]);
       //if(strstr(response.c_str(), "$@MID@$:")) printf("%s", strstr(response.c_str(), "$@MID@$:"));
       //else printf("%s", response.c_str());
       //std::cout<<response<<std::endl;
@@ -538,7 +539,6 @@ namespace elogpp
     
     /* send request */
     m_Connector.send(request);
-    
     /* receive response */
     std::string resp=m_Connector.receive();
     m_Connector.disconnect();
@@ -558,7 +558,7 @@ namespace elogpp
         std::size_t found=tokens[i].find(':');
         if(found!=std::string::npos) 
         {
-          if(tokens[i].substr(0,found)=="$@MID@$") continue;
+          if(tokens[i].substr(0,found)=="$@MID@$") m_ID=std::stoi(SupressSpaces(tokens[i].substr(found+1)));
           attrib.emplace(SupressSpaces(tokens[i].substr(0,found)),SupressSpaces(tokens[i].substr(found+1)));
         } 
       }    

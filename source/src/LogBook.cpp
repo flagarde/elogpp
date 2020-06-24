@@ -4,30 +4,32 @@
 
 namespace elogpp
 {
-void Logbook::SetName(std::string name)
+  
+void Logbook::setName(const std::string& name)
 {
-    Name=name;   
-}
-    
-std::string Logbook::GetName()
-{
-    return Name;
-}
-    
-void Logbook::SetDescription(std::string description)
-{
-    Description=description;
+  m_Name=name;   
 }
 
-std::string Logbook::GetDescription()
+std::string Logbook::getName()
 {
-    return Description;
+  return m_Name;
 }
 
-void Logbook::Print(std::string t)
+void Logbook::setDescription(const std::string& description)
+{
+  m_Description=description;
+}
+
+std::string Logbook::getDescription()
+{
+    return m_Description;
+}
+
+void Logbook::print(const std::string& t)
 {
     std::cout<<t<<"Logbook : \n"
-             <<t<<"\t* Name : "<<GetName()<<"\n"
-             <<t<<"\t* Description : "<<GetDescription()<<"\n";
+             <<t<<"\t* Name : "<<getName()<<"\n"
+             <<t<<"\t* Description : "<<getDescription()<<"\n";
 }
+
 }

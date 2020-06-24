@@ -4,17 +4,19 @@
 
 namespace elogpp
 {
+  
 class ElogUser
 {
 public:
-    void SetName(std::string);
-    std::string GetName();
-    void SetPassword(std::string);
-    std::string GetPassword();
-    void Print();
+    void setName(const std::string&);
+    std::string getName();
+    void setPassword(const std::string&);
+    std::string getPassword();
+    void print();
 private:
-    std::string Name{""};
-    std::string Password{""};
+    std::string m_Name{""};
+    std::string m_Password{""};
 };
+
 }
 #endif

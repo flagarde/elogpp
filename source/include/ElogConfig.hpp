@@ -7,22 +7,24 @@
 
 namespace elogpp
 {
+  
 class ElogConfig
 {
 public:
     ElogConfig();
-    void PrintServer(std::string="");
-    void PrintUser(std::string="");
-    bool HasUser(std::string);
-    bool HasServer(std::string);
-    ElogUser GetUser(std::string);
-    ElogServer GetServer(std::string);
+    void printServer(const std::string& server="");
+    void printUser(const std::string& user="");
+    bool hasUser(const std::string&);
+    bool hasServer(const std::string&);
+    ElogUser getUser(const std::string&);
+    ElogServer getServer(const std::string&);
 private :
-    std::map<std::string,ElogServer> Servers;
-    std::map<std::string,ElogUser>Users;
-    std::string getEnvVar(std::string const &);
-    Json::Value OpenJSONFile(std::string);
-    void ExtractElogServersInfos(Json::Value root);
-    void ExtractElogUsersInfos(Json::Value root);
+    std::map<std::string,ElogServer> m_Servers;
+    std::map<std::string,ElogUser> m_Users;
+    std::string getEnvVar(const std::string &);
+    Json::Value openJSONFile(const std::string&);
+    void extractElogServersInfos(const Json::Value& root);
+    void extractElogUsersInfos(const Json::Value& root);
 };
+
 }

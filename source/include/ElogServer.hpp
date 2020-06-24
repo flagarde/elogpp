@@ -5,35 +5,37 @@
 
 namespace elogpp
 {
+  
 class ElogServer
 {
 public :
     ElogServer();
-    void SetHostname(std::string);
-    std::string GetHostname();
-    void SetPort(std::string);
-    std::string GetPort();
-    void SetSSL(bool);
-    bool GetSSL();
-    void SetName(std::string);
-    std::string GetName();
-    void SetDescription(std::string);
-    std::string GetDescription();
-    void Print();
-    unsigned int GetServerNumber();
-    void SetSubDir(std::string="");
-    std::string GetSubDir();
-    void AddLogbook(Logbook);
+    void setHostname(const std::string&);
+    std::string getHostname();
+    void setPort(const std::string&);
+    std::string getPort();
+    void setSSL(const bool&);
+    bool getSSL();
+    void setName(const std::string&);
+    std::string getName();
+    void setDescription(const std::string&);
+    std::string getDescription();
+    void print();
+    unsigned int getServerNumber();
+    void setSubDir(const std::string& c="");
+    std::string getSubDir();
+    void addLogbook(Logbook&);
 private:
-    void SetServerNumber(const unsigned int&);
-    std::string Hostname{""};
-    std::string Port{""};
-    std::string SubDir{""};
-    bool SSL{false};
-    std::string Name{""};
-    std::string Description{""};
-    inline static int ServerNumberTotal{0};
-    unsigned int ServerNumber{0};
-    std::map<std::string,Logbook>Logbooks;
+    void setServerNumber(const unsigned int&);
+    std::string m_Hostname{""};
+    std::string m_Port{""};
+    std::string m_SubDir{""};
+    bool m_SSL{false};
+    std::string m_Name{""};
+    std::string m_Description{""};
+    inline static int m_ServerNumberTotal{0};
+    unsigned int m_ServerNumber{0};
+    std::map<std::string,Logbook> m_Logbooks;
 };
+
 }

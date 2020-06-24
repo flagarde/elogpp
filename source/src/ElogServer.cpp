@@ -5,100 +5,101 @@
 
 namespace elogpp
 {
-void ElogServer::SetHostname(std::string hostname)
+  
+void ElogServer::setHostname(const std::string& hostname)
 {
-     Hostname=hostname;
-}
-    
-std::string ElogServer::GetHostname()
-{
-    return Hostname;
-}
-    
-void ElogServer::SetPort(std::string port)
-{
-    Port=port;
-}
-    
-std::string ElogServer::GetPort()
-{
-    return Port;
-}
-    
-void ElogServer::SetSSL(bool ssl)
-{
-    SSL=ssl;
-}
-    
-bool ElogServer::GetSSL()
-{
-    return SSL;
+  m_Hostname=hostname;
 }
 
-void ElogServer::SetName(std::string name)
+std::string ElogServer::getHostname()
 {
-    Name=name;
-}
-    
-std::string ElogServer::GetName()
-{
-    return Name;
-}
-    
-void ElogServer::SetDescription(std::string description)
-{
-    Description=description;
-}
-    
-std::string ElogServer::GetDescription()
-{
-    return Description;
+  return m_Hostname;
 }
 
-void ElogServer::Print()
+void ElogServer::setPort(const std::string& port)
 {
-    std::cout<<"Server "<<GetServerNumber()<<" :\n"
-             <<"\t-> Name : "<<GetName()<<"\n"
-             <<"\t-> Description : "<<GetDescription()<<"\n"
-             <<"\t-> Hostname : "<<GetHostname()<<"\n"
-             <<"\t-> Port : "<<GetPort()<<"\n"
-             <<"\t-> SSL : "<<GetSSL()<<"\n"
-             <<"\t-> Subdirectory : "<<GetSubDir()<<"\n"
+  m_Port=port;
+}
+
+std::string ElogServer::getPort()
+{
+  return m_Port;
+}
+
+void ElogServer::setSSL(const bool& ssl)
+{
+  m_SSL=ssl;
+}
+
+bool ElogServer::getSSL()
+{
+  return m_SSL;
+}
+
+void ElogServer::setName(const std::string& name)
+{
+  m_Name=name;
+}
+
+std::string ElogServer::getName()
+{
+  return m_Name;
+}
+
+void ElogServer::setDescription(const std::string& description)
+{
+  m_Description=description;
+}
+
+std::string ElogServer::getDescription()
+{
+  return m_Description;
+}
+
+void ElogServer::print()
+{
+    std::cout<<"Server "<<getServerNumber()<<" :\n"
+             <<"\t-> Name : "<<getName()<<"\n"
+             <<"\t-> Description : "<<getDescription()<<"\n"
+             <<"\t-> Hostname : "<<getHostname()<<"\n"
+             <<"\t-> Port : "<<getPort()<<"\n"
+             <<"\t-> SSL : "<<getSSL()<<"\n"
+             <<"\t-> Subdirectory : "<<getSubDir()<<"\n"
              <<"\t-> Logbook(s) : \n";
-    for(std::map<std::string,Logbook>::iterator it=Logbooks.begin();it!=Logbooks.end();++it) 
+    for(std::map<std::string,Logbook>::iterator it=m_Logbooks.begin();it!=m_Logbooks.end();++it) 
     {
-        it->second.Print("\t\t");
+        it->second.print("\t\t");
     }
 }
 
-void ElogServer::SetSubDir(std::string subdir)
+void ElogServer::setSubDir(const std::string& subdir)
 {
-    SubDir=subdir;  
+  m_SubDir=subdir;  
 }
 
-std::string ElogServer::GetSubDir()
+std::string ElogServer::getSubDir()
 {
-    return SubDir;
+  return m_SubDir;
 }
 
-void ElogServer::SetServerNumber(const unsigned int& servernumber)
+void ElogServer::setServerNumber(const unsigned int& servernumber)
 {
-    ServerNumber=servernumber;   
+  m_ServerNumber=servernumber;   
 }
 
-unsigned int ElogServer::GetServerNumber()
+unsigned int ElogServer::getServerNumber()
 {
-    return ServerNumber;
+  return m_ServerNumber;
 }
 
 ElogServer::ElogServer()
 {
-  ServerNumberTotal++;  
-  SetServerNumber((unsigned int)(ServerNumberTotal));
+  m_ServerNumberTotal++;  
+  setServerNumber((unsigned int)(m_ServerNumberTotal));
 }
 
-void ElogServer::AddLogbook(Logbook logbook)
+void ElogServer::addLogbook(Logbook& logbook)
 {
-   Logbooks.insert(std::pair<std::string,Logbook>(logbook.GetName(),std::move(logbook)));
+  m_Logbooks.insert(std::pair<std::string,Logbook>(logbook.getName(),std::move(logbook)));
 }
 }

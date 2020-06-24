@@ -1,14 +1,7 @@
-configure_file(
-  "include/ElogCommand.hpp.in"
-  "${GENERATED_HEADER_PATH}/ElogCommand.hpp"
-)
-
 set(ELOGCPP_PUBLIC_HEADERS 
-	"${GENERATED_HEADER_PATH}/ElogCommand.hpp"  
 	include/ElogConfig.hpp  
 	include/ElogEntry.hpp  
-	include/ElogManager.hpp  
-	include/ElogMessage.hpp  
+	include/ElogManager.hpp   
 	include/ElogServer.hpp  
 	include/ElogUser.hpp 
 	include/Logbook.hpp
@@ -17,12 +10,10 @@ set(ELOGCPP_PUBLIC_HEADERS
 	include/Elog.hpp
 )
 
-set(ELOGCPP_SOURCES 
-	src/ElogCommand.cpp  
+set(ELOGCPP_SOURCES  
 	src/ElogConfig.cpp  
 	src/ElogEntry.cpp  
 	src/ElogManager.cpp  
-	src/ElogMessage.cpp  
 	src/ElogServer.cpp  
 	src/ElogUser.cpp  
 	src/LogBook.cpp

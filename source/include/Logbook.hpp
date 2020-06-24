@@ -3,16 +3,18 @@
 
 namespace elogpp
 {
+  
 class Logbook
 {
 public:
-    void SetName(std::string);
-    std::string GetName();
-    void SetDescription(std::string);
-    std::string GetDescription();
-    void Print(std::string="");
+  void setName(const std::string&);
+  std::string getName();
+  void setDescription(const std::string&);
+  std::string getDescription();
+  void print(const std::string& shift="");
 private:
-    std::string Description{""};
-    std::string Name{""};
+  std::string m_Description{""};
+  std::string m_Name{""};
 };
+
 }

@@ -4,30 +4,29 @@
 
 namespace elogpp
 {
-void ElogUser::SetName(std::string name)
+void ElogUser::setName(const std::string& name)
 {
-    Name=name;   
+  m_Name=name;   
 }
 
-std::string ElogUser::GetName()
+std::string ElogUser::getName()
 {
-    return Name;
+  return m_Name;
 }
 
-void ElogUser::SetPassword(std::string password)
+void ElogUser::setPassword(const std::string& password)
 {
-    Password=password;
+  m_Password=password;
 }
 
-std::string ElogUser::GetPassword()
+std::string ElogUser::getPassword()
 {
-    return Password;
+  return m_Password;
 }
 
-void ElogUser::Print()
+void ElogUser::print()
 {
-    std::cout<<"User :\n"
-             <<"\tName: "<<GetName()<<"\n"
-             <<"\tPassword: "<<GetPassword()<<"\n";
+  std::cout<<"User :\n"<<"\tName: "<<getName()<<"\n"<<"\tPassword: "<<getPassword()<<"\n";
 }
+
 }

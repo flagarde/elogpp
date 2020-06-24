@@ -1,200 +1,165 @@
 #include "ElogEntry.hpp"
 #include <iostream>
 #include <vector>
-#include <ctype.h>
+
 namespace elogpp
 {
 
-bool ElogEntry::Sended(std::string message)
+std::string ElogEntry::supressSpaces(const std::string& part)
 {
-    if(message.find("Message successfully transmitted")!=std::string::npos) return true;
-    else return false;
+  std::string ret=part;
+  if(ret==""|| ret==" "||ret==" \n"||ret=="\n ") return "";
+  ret=std::string(ret.rbegin(),ret.rend());
+  while(!isgraph(ret[0]))
+  {
+    if(ret.size()==1) return "";
+    else ret=ret.erase(0,1);
+  }
+  ret=std::string(ret.rbegin(),ret.rend());
+  while(!isgraph(ret[0]))
+  {
+    ret=ret.erase(0,1);
+  }
+  return std::move(ret);
 }
 
-std::string ElogEntry::SupressSpaces(std::string part)
+ElogEntry& ElogEntry::receiveEntry(const int& id)
 {
-    if(part==""|| part==" "||part==" \n"||part=="\n ") return "";
-    part=std::string(part.rbegin(),part.rend());
-    while(!isgraph(part[0]))
-    {
-        if(part.size()==1) return "";
-        else part=part.erase(0,1);
-    }
-    part=std::string(part.rbegin(),part.rend());
-    while(!isgraph(part[0]))
-    {
-        part=part.erase(0,1);
-    }
-    return std::move(part);
+  m_Elog.setType(Download);
+  m_Elog.setID(id);
+  m_Elog.SubmitElog();
+  return *this;
+}
+
+std::string ElogEntry::getLastID()
+{
+  m_Elog.setType(Download);
+  m_Elog.setID(-1);
+  m_Elog.SubmitElog();
+  return std::to_string(m_Elog.getID());
+}
+
+ElogEntry& ElogEntry::receiveEntry(const std::string& id)
+{
+  if(id=="last")
+  {
+    return receiveEntry(std::stoi(getLastID()));
+  }
+  return receiveEntry(std::stoi(id));
 }
     
-std::pair<std::string,std::string> ElogEntry::ParseAttribute(std::string line)
+ElogEntry & ElogEntry::edit(const int& id)
 {
-    std::string delimiter=":";
-    std::size_t found = line.find(delimiter);
-    std::pair<std::string,std::string> attribute(SupressSpaces(line.substr(0,found)),SupressSpaces(line.substr(found+delimiter.size())));
-    return std::move(attribute);
-}
-void ElogEntry::ParseHeader(std::string header)
-{
-    std::string newline="\n";
-    std::size_t found = 0;
-    do
-    {
-        found = header.find(newline);
-        if(header.substr(0,found)!="")
-        {
-            std::pair<std::string,std::string> attribute=ParseAttribute(header.substr(0,found));
-            if(header.substr(0,found).find("$@MID@$")!=std::string::npos) attribute.first="ID";
-            message.SetAttribute(std::move(attribute));
-        }
-        header=header.erase(0,found+1);
-    }
-    while(found!=std::string::npos);
+  m_Elog.setType(Edit);
+  m_Elog.setID(id);
+  return *this;
 }
 
-void ElogEntry::ParseReceivedCommand(std::string entry)
+ElogEntry & ElogEntry::edit(const std::string& id)
 {
-    std::string Delimiter="========================================";
-    std::size_t found=entry.find(Delimiter);    
-    if(found==std::string::npos) return;
-    if(found+Delimiter.size()!=std::string::npos) message.SetMessage(SupressSpaces(entry.substr(found+Delimiter.size())));
-    if(found!=std::string::npos)
-    {
-        entry.erase(found);
-        ParseHeader(entry);
-    }
-}
-        
-ElogEntry& ElogEntry::ReceiveEntry(int id)
-{
-    return ReceiveEntry(std::to_string(id));
+  return edit(std::stoi(id));
 }
 
-std::string ElogEntry::GetLastID()
+ElogEntry & ElogEntry::replyTo(const int& id,const std::string& option)
 {
-    ElogEntry toto(*this);
-    toto.ReceiveEntry("last");
-    return toto.GetAttribute("ID");
+  m_Elog.setID(id);
+  m_Elog.setType(Reply);
+  return *this;
 }
 
-ElogEntry& ElogEntry::ReceiveEntry(std::string id)
+ElogEntry & ElogEntry::replyTo(const std::string& id,const std::string& option)
 {
-    Command.AddToCommand(id,Command.SetAsDownload());
-    Command.BuildCommand();
-    //Command.Print();
-    ParseReceivedCommand(ExecuteCommand());
-    return *this;
-}
-    
-ElogEntry & ElogEntry::Edit(int id)
-{
-    return Edit(std::to_string(id));
+  if(id=="last")
+  {
+    return replyTo(std::stoi(getLastID()),option);
+  }
+  return replyTo(std::stoi(id),option);
 }
 
-ElogEntry & ElogEntry::Edit(std::string id)
+ElogEntry& ElogEntry::user(const std::string& user)
 {
-    Command.AddToCommand(id,Command.SetAsReply());
-    return *this;
+  if(m_Conf.hasUser(user))
+  {
+    m_Elog.setUserName(m_Conf.getUser(user).getName());
+    m_Elog.setPassword(m_Conf.getUser(user).getPassword());
+  }
+  else std::cout<<"User "<<user<<" unknown ! Please check your configuration files !\n";
+  return *this;
 }
 
-ElogEntry & ElogEntry::ReplyTo(int id,std::string option)
+bool ElogEntry::send(const std::string& option)
 {
-    return ReplyTo(std::to_string(id),option);
+  return m_Elog.SubmitElog();
 }
 
-ElogEntry & ElogEntry::ReplyTo(std::string id,std::string option)
+ElogEntry& ElogEntry::to(const std::string& server,const std::string& logbook)
 {
-    if(id=="last")
-    {
-        id=GetLastID();
-    }
-    Command.AddToCommand(id,option);
-    return *this;
+  if(m_Conf.hasServer(server))
+  {
+    m_Elog.setHostname(m_Conf.getServer(server).getHostname());
+    m_Elog.setLogbook(logbook);
+    m_Elog.setPort(std::stoi(m_Conf.getServer(server).getPort()));
+    m_Elog.setSSL(m_Conf.getServer(server).getSSL());
+    m_Elog.setSubdir(m_Conf.getServer(server).getSubDir());
+  }
+  else
+  {
+    std::cout<<"Server "<<server<<" unknown ! Please check your configuration files !\n";
+    std::exit(2);
+  }
+  return *this;
 }
 
-ElogEntry& ElogEntry::User(std::string user)
+void ElogEntry::setAttribute(const std::string& attribute,const std::string& value)
 {
-    if(conf.HasUser(user))Command.AddToCommand(conf.GetUser(user));
-    else std::cout<<"User "<<user<<" unknown ! Please check your configuration files !\n";
-    return *this;
+  m_Elog.addAttribute(attribute,value);
 }
 
-bool ElogEntry::Send(std::string option)
+std::string ElogEntry::getAttribute(const std::string& attribute)
 {
-    Command.AddToCommand(option,Command.SetAsOption());
-    Command.AddToCommand(message);
-    Command.BuildCommand();
-    std::string MessageFromElog=ExecuteCommand();
-    if(option.find("V-")!=std::string::npos) ;
-    else if(option.find("V")!=std::string::npos||Sended(MessageFromElog)==false)std::cout<<MessageFromElog<<std::endl;
-    return Sended(MessageFromElog);
+  return m_Elog.getAttributes()[attribute];
 }
 
-std::string ElogEntry::ExecuteCommand()
+bool ElogEntry::isAttribute(const std::string& attribute) 
 {
-    return std::move(Command.Execute());
+  if(m_Elog.getAttributes().find(attribute)!=m_Elog.getAttributes().end()) return true;
+  else return false;
 }
-
-ElogEntry& ElogEntry::To(std::string server,std::string logbook)
-{
-    if(conf.HasServer(server))Command.AddToCommand(conf.GetServer(server),logbook);
-    else
-    {
-        std::cout<<"Server "<<server<<" unknown ! Please check your configuration files !\n";
-        std::exit(2);
-    }
-    return *this;
-}
-
-void ElogEntry::SetAttribute(std::string attribute, std::string value)
-{
-    message.SetAttribute(attribute,value);
-}
-
-std::string ElogEntry::GetAttribute(std::string attribute)
-{
-    return message.GetAttribute(attribute);
-}
-
-bool ElogEntry::IsAttribute(std::string attribute) 
-{
-    return message.IsAttribute(attribute);
-}
-
-bool ElogEntry::IsAttributeEmpty(std::string attribute)
+/*
+bool ElogEntry::IsAttributeEmpty(const std::string& attribute)
 {
     return message.IsAttributeEmpty(attribute);
+}*/
+
+void ElogEntry::addAttachment(const std::string& attachment)
+{
+  m_Elog.addAttachment(attachment);
 }
 
-void ElogEntry::AddAttachment(std::string attachment)
+void ElogEntry::setMessage(const std::string& message)
 {
-    message.AddAttachment(attachment);
+  m_Elog.setText(message);
 }
 
-void ElogEntry::SetMessage(std::string message_)
+void ElogEntry::addFileMessage(const std::string& filemessage)
 {
-    message.SetMessage(message_);
+  m_Elog.setTextFile(filemessage);
 }
 
-void ElogEntry::AddtoMessage(std::string message_)
+void ElogEntry::print()
 {
-    message.AddtoMessage(message_);
+  std::map<std::string,std::string> attributes=m_Elog.getAttributes();
+  for(std::map<std::string,std::string>::iterator it=attributes.begin();it!=attributes.end();++it)
+  {
+    std::cout<<it->first<<":"<<it->second<<std::endl;
+  }
+  std::cout<<"========================================"<<std::endl;
+  std::cout<<m_Elog.getText()<<std::endl;
 }
-
-void ElogEntry::AddFileMessage(std::string filemessage)
+/*
+bool ElogEntry::hasAttachment()
 {
-    message.AddFileMessage(filemessage);
-}
-
-void ElogEntry::Print()
-{
-    message.Print();
-}
-
-bool ElogEntry::HasAttachment()
-{
-    return message.HasAttachment();
+  return message.HasAttachment();
 }
 
 bool ElogEntry::HasAttributes()
@@ -211,25 +176,26 @@ bool ElogEntry::HasFileMessage()
 bool ElogEntry::HasTextMessage()
 {
     return message.HasTextMessage();
-}
+}*/
 
-std::vector<std::string> & ElogEntry::GetAttachments()
+std::vector<std::string> ElogEntry::getAttachments()
 {
-    return message.GetAttachments();
+  return m_Elog.getAttachments();
 }
 
-std::map<std::string, std::string> & ElogEntry::GetAttributes()
+std::map<std::string, std::string> ElogEntry::getAttributes()
 {
-    return message.GetAttributes();
+  return m_Elog.getAttributes();
 }
-
+/*
 std::string ElogEntry::GetFileMessage()
 {
-    return message.GetFileMessage();
+  return message.GetFileMessage();
+}
+*/
+std::string ElogEntry::getText()
+{
+  return m_Elog.getText();
 }
 
-std::string ElogEntry::GetTextMessage()
-{
-    return message.GetTextMessage();
-}
 }
