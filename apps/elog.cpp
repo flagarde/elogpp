@@ -357,7 +357,7 @@ connector.send(request);
 
 /*------------------------------------------------------------------*/
 
-int submit_elog(elogpp::Connector& connector,const Type &type, const int &ID,const std::string& subdir,const std::string& logbook,const std::string& uname,const std::string& upwd, int quote_on_reply, int suppress, int encoding, char attrib_name[maxNAttributes][NAME_LENGTH], char attrib[maxNAttributes][NAME_LENGTH], int n_attr, char *text, const std::vector<std::string>& attachments, char *buffer[maxAttachments], int buffer_size[maxAttachments])
+int submit_elog(elogpp::Connector& connector,const Type &type, const int &ID,const std::string& subdir,const std::string& logbook,const std::string& uname,const std::string& upwd,const bool& quote_on_reply,const bool& suppress, int encoding, char attrib_name[maxNAttributes][NAME_LENGTH], char attrib[maxNAttributes][NAME_LENGTH], int n_attr, char *text, const std::vector<std::string>& attachments, char *buffer[maxAttachments], int buffer_size[maxAttachments])
 {
   int header_length, content_length;
   char boundary[80], str[80], *p;
@@ -425,7 +425,7 @@ int submit_elog(elogpp::Connector& connector,const Type &type, const int &ID,con
 
     if (i < n_attr) old_encoding = attrib[i];
 
-    if (quote_on_reply) 
+    if(quote_on_reply==true) 
     {
       strlcpy(new_text, text, sizeof(new_text));
       /* precede old text with "> " */
@@ -506,7 +506,7 @@ int submit_elog(elogpp::Connector& connector,const Type &type, const int &ID,con
     sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"skiplock\"\r\n\r\n1\r\n",boundary);
   }
 
-  if (suppress) sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"suppress\"\r\n\r\n1\r\n",boundary);
+  if(suppress==true) sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"suppress\"\r\n\r\n1\r\n",boundary);
 
   if (encoding == 0) sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"encoding\"\r\n\r\nELCode\r\n",boundary);
   else if (encoding == 1) sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"encoding\"\r\n\r\nplain\r\n",boundary);
@@ -626,15 +626,17 @@ int main(int argc, char *argv[])
   std::map<std::string,std::string> attributes;
   std::string uname{""};
   std::string upwd{""};
+  bool quote_on_reply{false};
+  bool suppress{false};
   
   char str[1000];
   char *buffer[maxAttachments];
   int att_size[maxAttachments];
-  int i, n, n_att, n_attr, port,  quote_on_reply ,encoding, suppress, size;
+  int i, n, n_att, n_attr, port,  encoding;
   char attr_name[maxNAttributes][NAME_LENGTH],
       attrib[maxNAttributes][NAME_LENGTH];
 
-  text[0] = suppress = quote_on_reply = 0;
+  text[0] = 0;
   n_att = n_attr = encoding = 0;
 
   for(std::size_t i = 0; i < maxAttachments; i++) 
@@ -649,8 +651,8 @@ int main(int argc, char *argv[])
     std::string key{argv[i]};
     if(key=="-v") connector.setVerbosity(true);
     else if(key=="-s") connector.setSSL(true);
-    else if(key=="-q") quote_on_reply = 1;
-    else if(key=="-x") suppress = 1;
+    else if(key=="-q") quote_on_reply = true;
+    else if(key=="-x") suppress = true;
     else if(key[0]=='-')
     {
       if(i + 1 >= argc || argv[i + 1][0] == '-') usage();
