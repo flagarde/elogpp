@@ -255,9 +255,8 @@ void convert_crlf(char *buffer, int bufsize) {
 }
 
 
-std::string retrieve_elog(elogpp::Connector& connector,const std::string& subdir,const std::string& logbook, char *uname, char *upwd,const int& ID,char attrib_name[maxNAttributes][NAME_LENGTH],char attrib[maxNAttributes][NAME_LENGTH], char *text)
+std::string retrieve_elog(elogpp::Connector& connector,const std::string& subdir,const std::string& logbook,const std::string& uname,const std::string& upwd,const int& ID,char attrib_name[maxNAttributes][NAME_LENGTH],char attrib[maxNAttributes][NAME_LENGTH], char *text)
 {
-  int  first;
   char str[256];
   connector.connect();
   char request[100000];
@@ -273,24 +272,14 @@ std::string retrieve_elog(elogpp::Connector& connector,const std::string& subdir
 
   sprintf(request + strlen(request), "User-Agent: ELOG\r\n");
 
-  first = 1;
-
-  if (uname[0]) 
+  if(!uname.empty()) 
   {
-    if (first) sprintf(request + strlen(request), "Cookie: ");
-    first = 0;
-    sprintf(request + strlen(request), "unm=%s;", uname);
-  }
-
-  if (upwd[0]) 
-  {
-    if (first) sprintf(request + strlen(request), "Cookie: ");
-    first = 0;
+    sprintf(request + strlen(request), "Cookie: ");
+    sprintf(request + strlen(request), "unm=%s;", uname.c_str());
     sprintf(request + strlen(request), "upwd=%s;", elogpp::do_crypt(upwd).c_str());
+    strcat(request, "\r\n");
   }
 
-  /* finish cookie line */
-  if (!first) strcat(request, "\r\n");
   strcat(request, "\r\n");
 
 /* send request */
@@ -368,7 +357,7 @@ connector.send(request);
 
 /*------------------------------------------------------------------*/
 
-int submit_elog(elogpp::Connector& connector,const Type &type, const int &ID,const std::string& subdir,const std::string& logbook, char *uname, char *upwd, int quote_on_reply, int suppress, int encoding, char attrib_name[maxNAttributes][NAME_LENGTH], char attrib[maxNAttributes][NAME_LENGTH], int n_attr, char *text, const std::vector<std::string>& attachments, char *buffer[maxAttachments], int buffer_size[maxAttachments])
+int submit_elog(elogpp::Connector& connector,const Type &type, const int &ID,const std::string& subdir,const std::string& logbook,const std::string& uname,const std::string& upwd, int quote_on_reply, int suppress, int encoding, char attrib_name[maxNAttributes][NAME_LENGTH], char attrib[maxNAttributes][NAME_LENGTH], int n_attr, char *text, const std::vector<std::string>& attachments, char *buffer[maxAttachments], int buffer_size[maxAttachments])
 {
   int header_length, content_length;
   char boundary[80], str[80], *p;
@@ -501,10 +490,9 @@ int submit_elog(elogpp::Connector& connector,const Type &type, const int &ID,con
   strcpy(content, boundary);
   strcat(content,"\r\nContent-Disposition: form-data; name=\"cmd\"\r\n\r\nSubmit\r\n");
 
-  if (uname[0]) sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"unm\"\r\n\r\n%s\r\n",boundary, uname);
-
-  if (upwd[0]) 
+  if(!uname.empty())
   {
+    sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"unm\"\r\n\r\n%s\r\n",boundary, uname.c_str());
     sprintf(content + strlen(content),"%s\r\nContent-Disposition: form-data; name=\"upwd\"\r\n\r\n%s\r\n",boundary, elogpp::do_crypt(upwd).c_str());
   }
 
@@ -636,16 +624,17 @@ int main(int argc, char *argv[])
   std::string textfile{""};
   bool text_flag{false};
   std::map<std::string,std::string> attributes;
+  std::string uname{""};
+  std::string upwd{""};
   
-  
-  char str[1000], uname[80], upwd[80];
+  char str[1000];
   char *buffer[maxAttachments];
   int att_size[maxAttachments];
   int i, n, n_att, n_attr, port,  quote_on_reply ,encoding, suppress, size;
   char attr_name[maxNAttributes][NAME_LENGTH],
       attrib[maxNAttributes][NAME_LENGTH];
 
-  text[0] = uname[0] = upwd[0] = suppress = quote_on_reply = 0;
+  text[0] = suppress = quote_on_reply = 0;
   n_att = n_attr = encoding = 0;
 
   for(std::size_t i = 0; i < maxAttachments; i++) 
@@ -657,77 +646,75 @@ int main(int argc, char *argv[])
   /* parse command line parameters */
   for(std::size_t i = 1; i < argc; i++) 
   {
-    if (argv[i][0] == '-' && argv[i][1] == 'v') connector.setVerbosity(true);
-    else if (argv[i][0] == '-' && argv[i][1] == 's') connector.setSSL(true);
-    else if (argv[i][0] == '-' && argv[i][1] == 'q')
-      quote_on_reply = 1;
-    else if (argv[i][0] == '-' && argv[i][1] == 'x')
-      suppress = 1;
-    else {
-      if (argv[i][0] == '-') {
-        if (i + 1 >= argc || argv[i + 1][0] == '-')
-          usage();
-        if (argv[i][1] == 'h')  connector.setHostname(std::string(argv[++i]));
-        else if (argv[i][1] == 'p') connector.setPort(atoi(argv[++i]));
-        else if (argv[i][1] == 'l') logbook=std::string(argv[++i]);
-        else if (argv[i][1] == 'd')  subdir=std::string(argv[++i]);
-        else if (argv[i][1] == 'u') 
-        {
-          strcpy(uname, argv[++i]);
-          strcpy(upwd, argv[++i]);
-        } 
-        else if (argv[i][1] == 'a') 
-        {
-          strcpy(str, argv[++i]);
-          if (strchr(str, '=')) 
-          {
-            
-            //attributes.emplace(
-            strcpy(attrib[n_attr], strchr(str, '=') + 1);
-            *strchr(str, '=') = 0;
-            strcpy(attr_name[n_attr], str);
-            n_attr++;
-          } 
-          else 
-          {
-            std::cout<<"Error: Attributes must be supplied in the form \"-a <attribute>=<value>\".\n";
-            return 1;
-          }
-        } 
-        else if (argv[i][1] == 'f') attachments.push_back(std::string(argv[++i]));
-        else if (argv[i][1] == 'r') 
-        {
-          type = Reply;
-          ID = atoi(argv[++i]);
-        } 
-        else if (argv[i][1] == 'e') 
-        {
-          type = Edit;
-          ID = atoi(argv[++i]);
-        } 
-        else if (argv[i][1] == 'w') 
-        {
-          type = Download;
-          if (argv[i + 1][0] == 'l') ID = -1;
-          else
-          ID = std::stoi(argv[++i]); 
-        } 
-        else if (argv[i][1] == 'n') encoding = atoi(argv[++i]);
-        else if (argv[i][1] == 'm') 
-        {
-          textfile=std::string(argv[++i]);
-          text_flag = true;
-        } 
-        else usage();
-      } 
-      else 
+    std::string key{argv[i]};
+    if(key=="-v") connector.setVerbosity(true);
+    else if(key=="-s") connector.setSSL(true);
+    else if(key=="-q") quote_on_reply = 1;
+    else if(key=="-x") suppress = 1;
+    else if(key[0]=='-')
+    {
+      if(i + 1 >= argc || argv[i + 1][0] == '-') usage();
+      std::string value{argv[++i]};
+      if(key == "-h")  connector.setHostname(value);
+      else if(key == "-p") connector.setPort(std::stoi(value));
+      else if(key == "-l") logbook=value;
+      else if(key == "-d")  subdir=value;
+      else if(key == "-u") 
       {
-        strcpy(text, argv[i]);
-        convert_crlf(text, sizeof(text));
+        uname=value;
+        std::string value2{argv[++i]};
+        upwd=value2;
+      } 
+      else if(key == "-a") 
+      {
+        strcpy(str, value.c_str());
+        if (strchr(str, '=')) 
+        {
+          //attributes.emplace(
+          strcpy(attrib[n_attr], strchr(str, '=') + 1);
+          *strchr(str, '=') = 0;
+          strcpy(attr_name[n_attr], str);
+          n_attr++;
+        } 
+        else 
+        {
+          std::cout<<"Error: Attributes must be supplied in the form \"-a <attribute>=<value>\".\n";
+          return 1;
+        }
+      } 
+      else if(key == "-f") attachments.push_back(value);
+      else if(key == "-r") 
+      {
+        type = Reply;
+        ID = std::stoi(value);
+      } 
+      else if(key == "-e") 
+      {
+        type = Edit;
+        ID = std::stoi(value);
+      } 
+      else if(key == "-w") 
+      {
+        type = Download;
+        if(value == "l") ID = -1;
+        else ID = std::stoi(value); 
+      } 
+      else if(key == "-n") encoding = std::stoi(value);
+      else if(key == "-m") 
+      {
+        textfile=value;
         text_flag = true;
-      }
+      } 
+      else usage();
+    } 
+    else 
+    {
+      strcpy(text, argv[i]);
+      convert_crlf(text, sizeof(text));
+      text_flag = true;
     }
   }
+
 
   if(logbook.empty()) 
   {
