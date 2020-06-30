@@ -1,7 +1,6 @@
 #include "ElogConfig.hpp"
 #include <string>
 #include <cstdlib>
-#include "json/json.h"
 #include <fstream>
 #include <iostream>
 

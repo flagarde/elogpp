@@ -32,7 +32,7 @@ target_link_libraries(Connector PRIVATE OpenSSL::SSL PRIVATE OpenSSL::Crypto)
 
 add_library(elogpp STATIC ${ELOGCPP_SOURCES})
 add_dependencies(elogpp jsoncpp_project Connector)
-target_include_directories(elogpp  PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/")
+target_include_directories(elogpp  PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/"  PUBLIC "${CMAKE_INSTALL_PREFIX}/include/json")
 target_link_libraries(elogpp INTERFACE jsoncpp PUBLIC Connector)
 install(FILES ${ELOGCPP_PUBLIC_HEADERS} DESTINATION "${CMAKE_INSTALL_PREFIX}/include/elogpp")
 
