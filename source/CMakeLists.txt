@@ -21,6 +21,8 @@ set(ELOGCPP_SOURCES
 	src/Elog.cpp
 )
 
+include(jsoncpp)
+
 add_library(Connector STATIC src/Connector.cpp)
 find_package(OpenSSL QUIET) 
 if(OpenSSL_FOUND)
@@ -34,7 +36,7 @@ endif()
 
 
 add_library(elogpp STATIC ${ELOGCPP_SOURCES})
-add_dependencies(elogpp jsoncpp Connector)
+add_dependencies(elogpp jsoncpp_project Connector)
 target_include_directories(elogpp  PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/")
 target_link_libraries(elogpp INTERFACE jsoncpp PUBLIC Connector)
 install(FILES ${ELOGCPP_PUBLIC_HEADERS} DESTINATION "${CMAKE_INSTALL_PREFIX}/include/elogpp")

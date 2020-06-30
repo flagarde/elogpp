@@ -16,11 +16,6 @@ if(CMAKE_CXX_STANDARD EQUAL "98")
     message(FATAL_ERROR "CMAKE_CXX_STANDARD:STRING=98 is not supported.")
 endif()
 
-set(ELOG_PATH $CACHE{ELOG_PATH})
-if(NOT ${ELOG_PATH} STREQUAL "")
-  message(STATUS "Elog path : ${ELOG_PATH}")
-endif()
-
 #####
 ##  Set the default target properties
 if(NOT CMAKE_CXX_STANDARD)
@@ -37,35 +32,26 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}/bin" CACHE PATH "Install Prefix" FORCE)
 endif()
 
-set(GENERATED_HEADER_PATH ${CMAKE_BINARY_DIR}/generated/)
-
-include(ExternalProject)
-
-if (NOT TARGET jsoncpp)
-  set( jsoncpp_repository "https://github.com/RPClab/jsoncpp" )
-  set( jsoncpp_version "master" )
-  option(JSONCPP_WITH_TESTS "Compile and (for jsoncpp_check) run JsonCpp test executables" OFF)
-  option(JSONCPP_WITH_POST_BUILD_UNITTEST "Automatically run unit-tests as a post build step" OFF)
-  option(JSONCPP_WITH_WARNING_AS_ERROR "Force compilation to fail if a warning occurs" OFF)
-  option(JSONCPP_WITH_STRICT_ISO "Issue all the warnings demanded by strict ISO C and ISO C++" ON)
-  option(JSONCPP_WITH_PKGCONFIG_SUPPORT "Generate and install .pc files" OFF)
-  option(JSONCPP_WITH_CMAKE_PACKAGE "Generate and install cmake package files" ON)
-  option(JSONCPP_WITH_EXAMPLE "Compile JsonCpp example" OFF)
-  option(BUILD_SHARED_LIBS "Build jsoncpp_lib as a shared library." OFF)
-  # ----- jsoncpp package -----
-  ExternalProject_Add( 
-                      jsoncpp
-                      GIT_REPOSITORY ${jsoncpp_repository}
-                      GIT_TAG ${jsoncpp_version}
-                      GIT_PROGRESS TRUE
-                      GIT_SHALLOW TRUE
-                      CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} -DJSONCPP_WITH_TESTS=${JSONCPP_WITH_TESTS} -DJSONCPP_WITH_POST_BUILD_UNITTEST=${JSONCPP_WITH_POST_BUILD_UNITTEST} -DJSONCPP_WITH_PKGCONFIG_SUPPORT=${JSONCPP_WITH_PKGCONFIG_SUPPORT} -DJSONCPP_WITH_CMAKE_PACKAGE=${JSONCPP_WITH_CMAKE_PACKAGE} -DJSONCPP_WITH_EXAMPLE=${JSONCPP_WITH_EXAMPLE} -DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}
-                      PREFIX ${CMAKE_CURRENT_BINARY_DIR}/jsoncpp-prefix
-                      SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/jsoncpp
-                      INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
-                      UPDATE_DISCONNECTED TRUE
-                      )
+if(CMAKE_SYSTEM_NAME STREQUAL Linux)
+  include(GNUInstallDirs)
+  set(LIBRARY_OUTPUT_DIR "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+  set(RUNTIME_OUTPUT_DIR "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}")
+  set(ARCHIVE_OUTPUT_DIR "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+  set(INCLUDE_OUTPUT_DIR "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}")
+  set(CMAKE_OUTPUT_DIRECTORY "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/cmake")
+else()
+  set(LIBRARY_OUTPUT_DIR "${CMAKE_INSTALL_PREFIX}/lib")
+  set(RUNTIME_OUTPUT_DIR "${CMAKE_INSTALL_PREFIX}")
+  set(ARCHIVE_OUTPUT_DIR "${CMAKE_INSTALL_PREFIX}/lib")
+  set(INCLUDE_OUTPUT_DIR "${CMAKE_INSTALL_PREFIX}/include")
+  set(CMAKE_OUTPUT_DIRECTORY "${CMAKE_INSTALL_PREFIX}/lib/cmake")
 endif()
+
+set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${CMAKE_CURRENT_SOURCE_DIR}/cmake/scripts" "${CMAKE_CURRENT_SOURCE_DIR}/external" "${CMAKE_CURRENT_SOURCE_DIR}")
+
+# jsoncpp
+set(JSONCPP_REPOSITORY "https://github.com/open-source-parsers/jsoncpp.git")
+set(JSONCPP_VERSION "master")
 
 configure_file("${PROJECT_SOURCE_DIR}/confs/Elog.json" "${CMAKE_INSTALL_PREFIX}/confs/Elog_DEMO.json" COPYONLY)
 
