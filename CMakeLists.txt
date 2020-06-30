@@ -4,28 +4,24 @@
 #            @author Lagarde François, SJTU            #
 #                                                      #
 ########################################################
-cmake_minimum_required(VERSION 3.10...3.16.1 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.10...3.17.3)
 
 project(elogpp VERSION "1.1.0.0" DESCRIPTION "CPP wrapper for elog" HOMEPAGE_URL "https://rpclab.github.io/elogpp" LANGUAGES CXX)
 
 option(COMPILE_ELOG "Compile elog" ON)
 option(BUILD_TEST "Build the test executable" ON)
 
-# ==== Define language standard configurations requiring at least c++11 standard
-if(CMAKE_CXX_STANDARD EQUAL "98")
-    message(FATAL_ERROR "CMAKE_CXX_STANDARD:STRING=98 is not supported.")
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+elseif(CMAKE_CXX_STANDARD EQUAL "98")
+  message(FATAL_ERROR "CMAKE_CXX_STANDARD:STRING=98 is not supported.")
 endif()
 
-#####
-##  Set the default target properties
-if(NOT CMAKE_CXX_STANDARD)
-    set(CMAKE_CXX_STANDARD 17) # Supported values are ``11``, ``14``, and ``17``.
-endif()
 if(NOT CMAKE_CXX_STANDARD_REQUIRED)
-    set(CMAKE_CXX_STANDARD_REQUIRED ON)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
 endif()
 if(NOT CMAKE_CXX_EXTENSIONS)
-    set(CMAKE_CXX_EXTENSIONS OFF)
+  set(CMAKE_CXX_EXTENSIONS OFF)
 endif()
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -52,6 +48,9 @@ set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_CURRENT_SOURCE_DIR}/cmake"
 # jsoncpp
 set(JSONCPP_REPOSITORY "https://github.com/open-source-parsers/jsoncpp.git")
 set(JSONCPP_VERSION "master")
+
+set(OPENSSL_REPOSITORY "https://github.com/flagarde/openssl-cmake.git")
+set(OPENSSL_TAG "master")
 
 configure_file("${PROJECT_SOURCE_DIR}/confs/Elog.json" "${CMAKE_INSTALL_PREFIX}/confs/Elog_DEMO.json" COPYONLY)
 

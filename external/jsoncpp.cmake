@@ -11,5 +11,6 @@ include(ExternalProject)
                       PREFIX ${CMAKE_BINARY_DIR}/jsoncpp_project
                       INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
                       LOG_DOWNLOAD ON
+                      UPDATE_DISCONNECTED ON
                     )
 endif()
