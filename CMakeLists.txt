@@ -47,7 +47,7 @@ else()
 endif()
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${CMAKE_CURRENT_SOURCE_DIR}/cmake/scripts" "${CMAKE_CURRENT_SOURCE_DIR}/external" "${CMAKE_CURRENT_SOURCE_DIR}")
-
+link_directories("${CMAKE_INSTALL_PREFIX}/lib")
 # jsoncpp
 set(JSONCPP_REPOSITORY "https://github.com/open-source-parsers/jsoncpp.git")
 set(JSONCPP_VERSION "master")
