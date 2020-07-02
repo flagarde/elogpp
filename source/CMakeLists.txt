@@ -19,24 +19,21 @@ set(ELOGCPP_SOURCES
   src/LogBook.cpp
   src/Crypt.cpp
   src/Elog.cpp
+  src/Connector.cpp
 )
 
 include(jsoncpp)
 include(openssl)
 find_package(OpenSSL REQUIRED)
-add_library(Connector STATIC src/Connector.cpp)
-target_include_directories(Connector PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/")
-target_compile_definitions(Connector PRIVATE HAVE_SSL)
-if (WIN32)
-  target_link_libraries(Connector PRIVATE wsock32 PRIVATE ws2_32 PRIVATE shlwapi)
-  set_target_properties(Connector PROPERTIES LINK_FLAGS "/NODEFAULTLIB:\"LIBCMTD\";\"LIBCMT\"")
-endif()
-target_link_libraries(Connector PRIVATE OpenSSL::SSL)
 
 add_library(elogpp STATIC ${ELOGCPP_SOURCES})
-add_dependencies(elogpp Connector)
+target_compile_definitions(elogpp PRIVATE HAVE_SSL)
+if (WIN32)
+  target_link_libraries(elogpp PRIVATE wsock32 PRIVATE ws2_32 PRIVATE shlwapi)
+  set_target_properties(elogpp PROPERTIES LINK_FLAGS "/NODEFAULTLIB:\"LIBCMTD\";\"LIBCMT\"")
+endif()
 target_include_directories(elogpp  PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/")
-target_link_libraries(elogpp PUBLIC jsoncpp::jsoncpp PUBLIC Connector)
+target_link_libraries(elogpp PUBLIC jsoncpp::jsoncpp PUBLIC OpenSSL::SSL)
 install(FILES ${ELOGCPP_PUBLIC_HEADERS} DESTINATION "${CMAKE_INSTALL_PREFIX}/include/elogpp")
 
 install(TARGETS elogpp ARCHIVE DESTINATION ${ARCHIVE_OUTPUT_DIR} RUNTIME DESTINATION ${RUNTIME_OUTPUT_DIR} LIBRARY DESTINATION ${LIBRARY_OUTPUT_DIR})
