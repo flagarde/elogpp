@@ -35,8 +35,8 @@ public:
   ElogEntry& to(const std::string&,const std::string&);
   ElogEntry& receiveEntry(const std::string&);
   ElogEntry& receiveEntry(const int&);
-private :
   std::string getLastID();
+private :
   std::string supressSpaces(const std::string&);
   ElogConfig m_Conf;
   Elog m_Elog;
