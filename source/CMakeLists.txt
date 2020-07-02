@@ -33,7 +33,7 @@ if (WIN32)
   set_target_properties(elogpp PROPERTIES LINK_FLAGS "/NODEFAULTLIB:\"LIBCMTD\";\"LIBCMT\"")
 endif()
 target_include_directories(elogpp  PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/")
-target_link_libraries(elogpp PUBLIC jsoncpp::jsoncpp PRIVATE OpenSSL::SSL)
+target_link_libraries(elogpp PUBLIC jsoncpp::jsoncpp PUBLIC OpenSSL::SSL)
 install(FILES ${ELOGCPP_PUBLIC_HEADERS} DESTINATION "${CMAKE_INSTALL_PREFIX}/include/elogpp")
 
 install(TARGETS elogpp ARCHIVE DESTINATION ${ARCHIVE_OUTPUT_DIR} RUNTIME DESTINATION ${RUNTIME_OUTPUT_DIR} LIBRARY DESTINATION ${LIBRARY_OUTPUT_DIR})
