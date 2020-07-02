@@ -23,7 +23,7 @@ set(ELOGCPP_SOURCES
 
 include(jsoncpp)
 include(openssl)
-
+find_package(OpenSSL REQUIRED) 
 add_library(Connector STATIC src/Connector.cpp)
 add_dependencies(Connector openssl_project)
 target_include_directories(Connector PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/")
