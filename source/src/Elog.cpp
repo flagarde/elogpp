@@ -304,7 +304,7 @@ namespace elogpp
     
     if(m_Type == Download) 
     {
-      //m_ID=std::stoi(m_Attributes["$@MID@$:"]);
+      m_ID=std::stoi(m_Attributes["$@MID@$:"]);
       //if(strstr(response.c_str(), "$@MID@$:")) printf("%s", strstr(response.c_str(), "$@MID@$:"));
       //else printf("%s", response.c_str());
       //std::cout<<response<<std::endl;
