@@ -23,7 +23,7 @@ set(ELOGCPP_SOURCES
 
 include(jsoncpp)
 include(openssl)
-find_package(OpenSSL REQUIRED) 
+find_package(OpenSSL REQUIRED)
 add_library(Connector STATIC src/Connector.cpp)
 target_include_directories(Connector PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/")
 target_compile_definitions(Connector PRIVATE HAVE_SSL)
@@ -34,7 +34,7 @@ endif()
 target_link_libraries(Connector PRIVATE OpenSSL::SSL)
 
 add_library(elogpp STATIC ${ELOGCPP_SOURCES})
-add_dependencies(elogpp jsoncpp_project Connector)
+add_dependencies(elogpp Connector)
 target_include_directories(elogpp  PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/")
 target_link_libraries(elogpp PUBLIC jsoncpp::jsoncpp PUBLIC Connector)
 install(FILES ${ELOGCPP_PUBLIC_HEADERS} DESTINATION "${CMAKE_INSTALL_PREFIX}/include/elogpp")
