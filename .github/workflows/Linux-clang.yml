@@ -1,0 +1,31 @@
+name: "Linux Clang"
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  BUILD_TYPE: Release
+  ROOT_VERSION: 6-22-00
+  CXX: clang-9
+
+jobs:
+  job:
+    name: "Linux Clang"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+     
+      - name: Configure
+        run: mkdir build && cd build && cmake ..
+      - name: Build
+        run: cmake --build build
+      - name: Install
+        run: cmake --install .
