@@ -5,7 +5,9 @@
 
 namespace elogpp
 {
-  
+
+int ElogServer::m_ServerNumberTotal{0};
+
 void ElogServer::setHostname(const std::string& hostname)
 {
   m_Hostname=hostname;
