@@ -277,8 +277,6 @@ namespace elogpp
   close(fh);
   }
   
-    
-    
     std::map<std::string,std::string> old_attrib;
     std::string old_text{""};
     char boundary[80], str[80];
@@ -588,29 +586,4 @@ namespace elogpp
     
     throw 0;
   }
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
 }
