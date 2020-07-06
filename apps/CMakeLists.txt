@@ -1,5 +1,5 @@
 add_executable(elog elog.cpp)
 target_link_libraries(elog PUBLIC elogpp)
-
+set_target_properties(elog PROPERTIES LINKER_LANGUAGE CXX)
 install(TARGETS elog ARCHIVE DESTINATION ${ARCHIVE_OUTPUT_DIR} RUNTIME DESTINATION ${RUNTIME_OUTPUT_DIR} LIBRARY DESTINATION ${LIBRARY_OUTPUT_DIR})
 
