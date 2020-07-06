@@ -33,7 +33,7 @@ private:
     bool m_SSL{false};
     std::string m_Name{""};
     std::string m_Description{""};
-    inline static int m_ServerNumberTotal{0};
+    static int m_ServerNumberTotal{0};
     unsigned int m_ServerNumber{0};
     std::map<std::string,Logbook> m_Logbooks;
 };
