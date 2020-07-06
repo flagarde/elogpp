@@ -23,7 +23,7 @@
 #include "Crypt.hpp"
 #include <cstdint>
 #include <cstring>
-
+#include <errno.h>
  #ifdef _MSC_VER
  #include <stdio.h>
  #include <stdlib.h>
