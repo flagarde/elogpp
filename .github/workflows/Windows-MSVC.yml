@@ -4,6 +4,7 @@ on: [push, pull_request]
 
 env:
   CMAKE_VERSION: 3.16.2
+  CMAKE_INSTALL_PREFIX: install
   BUILD_TYPE: Release
   CCACHE_VERSION: 3.7.7
   CC: cl
@@ -74,6 +75,7 @@ jobs:
             -S .
             -B build
             -D CMAKE_BUILD_TYPE=$ENV{BUILD_TYPE}
+            -D CMAKE_INSTALL_PREFIX=$ENV{CMAKE_INSTALL_PREFIX}
             -D CMAKE_C_COMPILER_LAUNCHER=ccache
             -D CMAKE_CXX_COMPILER_LAUNCHER=ccache
           RESULT_VARIABLE result
@@ -127,11 +129,11 @@ jobs:
           message(FATAL_ERROR "Running tests failed!")
         endif()
     - name: ➕ Install Strip
-      run: cmake --install build --prefix instdir --strip
+      run: cmake --install build --prefix $ENV{CMAKE_INSTALL_PREFIX} --strip
 
 
     - name: 📦 Pack
-      working-directory: instdir
+      working-directory: $ENV{CMAKE_INSTALL_PREFIX}
       run: cmake -E tar cJfv ../${{ matrix.config.artifact }} .
 
 
