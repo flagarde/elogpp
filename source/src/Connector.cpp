@@ -8,7 +8,7 @@
 #include <iostream>
 #include <cstring>
 
-#ifdef _MSC_VER
+#ifdef _WIN32 
   #include <windows.h>
   #include <io.h>
 #else
@@ -30,7 +30,7 @@ namespace elogpp
 
   Connector::Connector()
   {
-    #if defined(_MSC_VER)
+    #if defined(_WIN32)
     {
       WSADATA WSAData;
       if(WSAStartup(MAKEWORD(1, 1), &WSAData) != 0) throw -1;
