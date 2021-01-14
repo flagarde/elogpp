@@ -24,7 +24,6 @@ set(ELOGCPP_SOURCES
 
 include(jsoncpp)
 include(openssl)
-find_package(OpenSSL REQUIRED)
 
 add_library(elogpp STATIC ${ELOGCPP_SOURCES})
 target_compile_definitions(elogpp PRIVATE HAVE_SSL)
