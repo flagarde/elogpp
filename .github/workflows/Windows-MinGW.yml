@@ -129,15 +129,11 @@ jobs:
     - name: ➕ Install Strip
       run: cmake --install build --prefix install --strip
 
-    - name: 📦 Pack
-      run: cmake -E tar cJfv ./${{ matrix.config.artifact }} ./install/
-
-
-    - name: 🚀 Upload
+    - name: Upload
       uses: actions/upload-artifact@v1
       with:
+        path: ./install
         name: ${{ matrix.config.artifact }}
-        path: ./
 
   release:
     if: contains(github.ref, 'tags/v')
