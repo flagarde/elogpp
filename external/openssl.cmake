@@ -1,6 +1,4 @@
-
-
- if(NOT TARGET openssl_project)
+if(NOT TARGET openssl_project)
     include(ExternalProject)  
     # ----- openssl_project package -----
     ExternalProject_Add(openssl_project
@@ -61,4 +59,3 @@
 
 
     add_library(OpenSSL::SSL ALIAS builtin_ssl)
-
