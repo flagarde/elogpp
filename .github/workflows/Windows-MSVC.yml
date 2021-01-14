@@ -4,7 +4,6 @@ on: [push, pull_request]
 
 env:
   CMAKE_VERSION: 3.16.2
-  NINJA_VERSION: 1.10.0
   BUILD_TYPE: Release
   CCACHE_VERSION: 3.7.7
   CC: cl
@@ -32,11 +31,6 @@ jobs:
       with:
         cmake-version: '${{env.CMAKE_VERSION}}'
         github-api-token: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: ➕ Install Ninja
-      uses: seanmiddleditch/gha-setup-ninja@v3
-      with:
-        version: '${{env.NINJA_VERSION}}'
 
     - name: 📥 Download ccache
       id: ccache
@@ -80,8 +74,6 @@ jobs:
             -S .
             -B build
             -D CMAKE_BUILD_TYPE=$ENV{BUILD_TYPE}
-            -G Ninja
-            -D CMAKE_MAKE_PROGRAM=ninja
             -D CMAKE_C_COMPILER_LAUNCHER=ccache
             -D CMAKE_CXX_COMPILER_LAUNCHER=ccache
           RESULT_VARIABLE result
@@ -92,7 +84,6 @@ jobs:
     - name: 👷 Build
       shell: cmake -P {0}
       run: |
-        set(ENV{NINJA_STATUS} "[%f/%t %o/sec] ")
         if ("${{ runner.os }}" STREQUAL "Windows" AND NOT "x${{ matrix.config.environment_script }}" STREQUAL "x")
           file(STRINGS environment_script_output.txt output_lines)
           foreach(line IN LISTS output_lines)
