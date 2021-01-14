@@ -112,8 +112,7 @@ jobs:
 
 
     - name: 📦 Pack
-      working-directory: $ENV{CMAKE_INSTALL_PREFIX}
-      run: cmake -E tar cJfv ../${{ matrix.config.artifact }} .
+      run: cmake -E tar cJfv ./${{ matrix.config.artifact }} ./$ENV{CMAKE_INSTALL_PREFIX}
 
     - name: 🚀 Upload
       uses: actions/upload-artifact@v1

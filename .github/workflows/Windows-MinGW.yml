@@ -130,10 +130,8 @@ jobs:
     - name: ➕ Install Strip
       run: cmake --install build --prefix $ENV{CMAKE_INSTALL_PREFIX} --strip
 
-
     - name: 📦 Pack
-      working-directory: $ENV{CMAKE_INSTALL_PREFIX}
-      run: cmake -E tar cJfv ../${{ matrix.config.artifact }} .
+      run: cmake -E tar cJfv ./${{ matrix.config.artifact }} ./$ENV{CMAKE_INSTALL_PREFIX}
 
 
     - name: 🚀 Upload
