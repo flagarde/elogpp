@@ -1,9 +1,9 @@
-name: macOS
+name: Linux Clang
 
 on: [push, pull_request]
 
 env:
-  CMAKE_VERSION: 3.16.2
+  CMAKE_VERSION: 3.16.x
   NINJA_VERSION: 1.10.0
   BUILD_TYPE: Release
   CCACHE_VERSION: 3.7.7
@@ -12,14 +12,14 @@ env:
 
 jobs:
   build:
-    name: "macOS Latest Clang"
-    runs-on: macos-latest
+    name: "Ubuntu Latest Clang"
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         config:
         - {
-            artifact: "macOS.tar.xz",
+            artifact: "Linux-Clang.tar.xz",
           }
 
     steps:
@@ -122,11 +122,12 @@ jobs:
       working-directory: instdir
       run: cmake -E tar cJfv ../${{ matrix.config.artifact }} .
 
-    - name: 🚀 Upload
+
+    - name: Upload
       uses: actions/upload-artifact@v1
       with:
+        path: ./${{ matrix.config.artifact }}
         name: ${{ matrix.config.artifact }}
-        path: ./
 
   release:
     if: contains(github.ref, 'tags/v')
@@ -153,6 +154,7 @@ jobs:
         path: ./upload_url
         name: upload_url
 
+
   publish:
     if: contains(github.ref, 'tags/v')
     name: ${{ matrix.config.name }}
@@ -162,7 +164,7 @@ jobs:
       matrix:
         config:
         - {
-            name: "macOS Latest Clang", artifact: "macOS.tar.xz",
+            name: "Ubuntu Latest Clang", artifact: "Linux-Clang.tar.xz",
             os: ubuntu-latest
           }
     needs: release

@@ -1,4 +1,4 @@
-name: macOS
+name: Windows MinGW
 
 on: [push, pull_request]
 
@@ -7,19 +7,19 @@ env:
   NINJA_VERSION: 1.10.0
   BUILD_TYPE: Release
   CCACHE_VERSION: 3.7.7
-  CC: clang
-  CXX: clang++
+  CC: gcc
+  CXX: g++
 
 jobs:
   build:
-    name: "macOS Latest Clang"
-    runs-on: macos-latest
+    name: "Windows Latest MinGW"
+    runs-on: windows-latest
     strategy:
       fail-fast: false
       matrix:
         config:
         - {
-            artifact: "macOS.tar.xz",
+            artifact: "Windows-MinGW.tar.xz",
           }
 
     steps:
@@ -60,7 +60,19 @@ jobs:
     - name: 🔧 Configure
       shell: cmake -P {0}
       run: |
-        set(path_separator ":")
+        if ("${{ runner.os }}" STREQUAL "Windows" AND NOT "x${{ matrix.config.environment_script }}" STREQUAL "x")
+          execute_process(
+            COMMAND "${{ matrix.config.environment_script }}" && set
+            OUTPUT_FILE environment_script_output.txt
+          )
+          file(STRINGS environment_script_output.txt output_lines)
+          foreach(line IN LISTS output_lines)
+            if (line MATCHES "^([a-zA-Z0-9_-]+)=(.*)$")
+              set(ENV{${CMAKE_MATCH_1}} "${CMAKE_MATCH_2}")
+            endif()
+          endforeach()
+        endif()
+        set(path_separator ";")
         set(ENV{PATH} "$ENV{GITHUB_WORKSPACE}${path_separator}$ENV{PATH}")
         execute_process(
           COMMAND cmake
@@ -80,7 +92,15 @@ jobs:
       shell: cmake -P {0}
       run: |
         set(ENV{NINJA_STATUS} "[%f/%t %o/sec] ")
-        set(path_separator ":")
+        if ("${{ runner.os }}" STREQUAL "Windows" AND NOT "x${{ matrix.config.environment_script }}" STREQUAL "x")
+          file(STRINGS environment_script_output.txt output_lines)
+          foreach(line IN LISTS output_lines)
+            if (line MATCHES "^([a-zA-Z0-9_-]+)=(.*)$")
+              set(ENV{${CMAKE_MATCH_1}} "${CMAKE_MATCH_2}")
+            endif()
+          endforeach()
+        endif()
+        set(path_separator ";")
         set(ENV{PATH} "$ENV{GITHUB_WORKSPACE}${path_separator}$ENV{PATH}")
         file(TO_CMAKE_PATH "$ENV{GITHUB_WORKSPACE}" ccache_basedir)
         set(ENV{CCACHE_BASEDIR} "${ccache_basedir}")
@@ -122,6 +142,7 @@ jobs:
       working-directory: instdir
       run: cmake -E tar cJfv ../${{ matrix.config.artifact }} .
 
+
     - name: 🚀 Upload
       uses: actions/upload-artifact@v1
       with:
@@ -162,7 +183,7 @@ jobs:
       matrix:
         config:
         - {
-            name: "macOS Latest Clang", artifact: "macOS.tar.xz",
+            name: "Windows Latest MinGW", artifact: "Windows-MinGW.tar.xz",
             os: ubuntu-latest
           }
     needs: release
