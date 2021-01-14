@@ -28,7 +28,7 @@ find_package(OpenSSL REQUIRED)
 
 add_library(elogpp STATIC ${ELOGCPP_SOURCES})
 target_compile_definitions(elogpp PRIVATE HAVE_SSL)
-if(WIN32 AND NOT MINGW AND NOT MSYS AND NOT CYGWIN)
+if(WIN32)
   target_link_libraries(elogpp PRIVATE wsock32 PRIVATE ws2_32 PRIVATE shlwapi)
   set_target_properties(elogpp PROPERTIES LINK_FLAGS "/NODEFAULTLIB:\"LIBCMTD\";\"LIBCMT\"")
 endif()
