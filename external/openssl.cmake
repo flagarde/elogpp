@@ -46,6 +46,7 @@ if(COMPILE_OPENSSL)
     endif()
       set(libname lib${lib}${archname}${CMAKE_STATIC_LIBRARY_SUFFIX})
       set(OPENSSL_${libupper}_LIBRARY ${CMAKE_INSTALL_PREFIX}/lib/${libname})
+      message(STATUS "LLFLLFLFLFL ${OPENSSL_${libupper}_LIBRARY}")
     endforeach()
         find_package(Threads)
     #FIXME Try to find the version alone
