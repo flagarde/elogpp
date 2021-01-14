@@ -1,17 +1,5 @@
-if(USE_SYSTEM_OPENSSL)
-  find_package(OpenSSL QUIET)
-  if(OPENSSL_FOUND)
-    set(COMPILE_OPENSSL FALSE)
-  else()
-    set(COMPILE_OPENSSL TRUE)
-    message(STATUS "OpenSSL not found ! OpenSSL will be compiled !") 
-  endif()
-else()
-  set(COMPILE_OPENSSL TRUE)
-  message(STATUS "OpenSSL will be compiled") 
-endif()
 
-if(COMPILE_OPENSSL)
+
  if(NOT TARGET openssl_project)
     include(ExternalProject)  
     # ----- openssl_project package -----
@@ -73,4 +61,4 @@ if(COMPILE_OPENSSL)
 
 
     add_library(OpenSSL::SSL ALIAS builtin_ssl)
-endif()
+
