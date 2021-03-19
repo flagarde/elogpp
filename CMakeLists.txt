@@ -12,6 +12,14 @@ option(COMPILE_ELOG "Compile elog" ON)
 option(BUILD_TEST "Build the test executable" ON)
 option(USE_SYSTEM_OPENSSL "Use the OPENSSL provided by the system" ON)
 
+if(NOT DEFINED OPENSSL_REPOSITORY)
+  set(OPENSSL_REPOSITORY "https://gitlab.com/flagarde/openssl-cmake")
+endif()
+
+if(NOT DEFINED OPENSSL_TAG)
+  set(OPENSSL_TAG "1_1_1j")
+endif()
+
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
 set(CMAKE_LINK_DEPENDS_NO_SHARED TRUE)
 
