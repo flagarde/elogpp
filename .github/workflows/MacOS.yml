@@ -95,7 +95,7 @@ jobs:
         execute_process(COMMAND ccache -s)
         
     - name: ➕ Install Strip
-      run: cmake --install build --prefix $ENV{CMAKE_INSTALL_PREFIX} --strip
+      run: cmake --install build --strip
       
     - name: ✅ Run tests
       shell: cmake -P {0}

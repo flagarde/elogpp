@@ -123,7 +123,7 @@ jobs:
         endif()
 
     - name: ➕ Install Strip
-      run: cmake --install build --prefix $ENV{CMAKE_INSTALL_PREFIX} --strip
+      run: cmake --install build --strip
 
     - name: Upload
       uses: actions/upload-artifact@v1
