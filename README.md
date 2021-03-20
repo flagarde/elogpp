@@ -1,6 +1,6 @@
 # elogpp
 
-Wrapper for elog `https://elog.psi.ch/elog/`
+Wrapper for elog https://elog.psi.ch/elog/
 
 ## Goal
 
