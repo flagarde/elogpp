@@ -62,5 +62,6 @@ if(COMPILE_ELOG)
 endif()
 
 if(BUILD_TEST)
+  include(CTest)
   add_subdirectory(tests)
 endif()
