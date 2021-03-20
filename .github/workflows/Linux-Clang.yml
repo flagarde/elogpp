@@ -93,6 +93,10 @@ jobs:
           message(FATAL_ERROR "Bad exit status")
         endif()
         execute_process(COMMAND ccache -s)
+        
+    - name: ➕ Install Strip
+      run: cmake --install build --prefix $ENV{CMAKE_INSTALL_PREFIX} --strip
+      
     - name: ✅ Run tests
       shell: cmake -P {0}
       run: |
@@ -107,8 +111,6 @@ jobs:
         if (NOT result EQUAL 0)
           message(FATAL_ERROR "Running tests failed!")
         endif()
-    - name: ➕ Install Strip
-      run: cmake --install build --prefix $ENV{CMAKE_INSTALL_PREFIX} --strip
 
     - name: Upload
       uses: actions/upload-artifact@v1
