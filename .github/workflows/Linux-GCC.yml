@@ -29,6 +29,9 @@ jobs:
     - name: Install elog
       run: apt-get install elog
       
+    - name: Start elogd
+      run: systemctl start elogd.service
+      
     - name: ➕ Install cmake
       uses: jwlawson/actions-setup-cmake@v1.5
       with:
