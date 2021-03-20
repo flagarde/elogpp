@@ -89,7 +89,7 @@ int main()
     std::cout<<"* 5) I can extract data from the new last entry !   *"<<std::endl;
     std::cout<<"*****************************************************"<<std::endl;
     std::cout<<"His Author is : "<<entry.getAttribute("Author")<<std::endl;
-    std::cout<<"And this idiot said : "<<entry.getText()<<std::endl;
+    std::cout<<"And he said : "<<entry.getText()<<std::endl;
 }
 ```
 
