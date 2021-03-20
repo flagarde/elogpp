@@ -26,12 +26,6 @@ jobs:
     - name: 🚀 Checkout
       uses: actions/checkout@v2.3.2
       
-    - name: Install elog
-      run: sudo apt-get install elog
-      
-    - name: Start elogd
-      run: sudo elogd -p 8888
-      
     - name: ➕ Install cmake
       uses: jwlawson/actions-setup-cmake@v1.5
       with:
