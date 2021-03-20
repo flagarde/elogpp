@@ -1,37 +1,35 @@
-########################################################
-#                                                      #
-#            CMake file for building elogpp            #
-#            @author Lagarde François, SJTU            #
-#                                                      #
-########################################################
 cmake_minimum_required(VERSION 3.15...3.17.3)
+
+set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
+include(GetCMakeMM)
+cmmm(VERSION "1.1" REPOSITORY "flagarde/CMakeMM" PROVIDER "gitlab" VERBOSITY VERBOSE DESTINATION "CMakeMM")
+
+cmmm_modules_list(REPOSITORY "flagarde/CMakeCM" PROVIDER "gitlab" DESTINATION "Modules")
 
 project(elogpp VERSION "1.1.0.0" DESCRIPTION "CPP wrapper for elog" HOMEPAGE_URL "https://rpclab.github.io/elogpp" LANGUAGES CXX)
 
 option(COMPILE_ELOG "Compile elog" ON)
 option(BUILD_TEST "Build the test executable" ON)
-option(USE_SYSTEM_OPENSSL "Use the OPENSSL provided by the system" ON)
 
-if(NOT DEFINED OPENSSL_REPOSITORY)
-  set(OPENSSL_REPOSITORY "https://gitlab.com/flagarde/openssl-cmake")
-endif()
+option(USE_SYSTEM_OPENSSL "Use the OPENSSL provided by the system" OFF)
 
-if(NOT DEFINED OPENSSL_TAG)
-  set(OPENSSL_TAG "1_1_1j")
-endif()
+include(jsoncpp)
+include(openssl)
 
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
 set(CMAKE_LINK_DEPENDS_NO_SHARED TRUE)
 
-if(NOT CMAKE_CXX_STANDARD)
+if(NOT DEFINED CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 11)
 endif()
 
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+if(NOT DEFINED CMAKE_CXX_STANDARD_REQUIRED)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+endif()
 
-if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  set(CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}/bin" CACHE PATH "Install Prefix" FORCE)
+if(NOT DEFINED CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD OFF)
 endif()
 
 include(GNUInstallDirs)
@@ -49,14 +47,11 @@ else()
   set(CMAKE_OUTPUT_DIRECTORY "${CMAKE_INSTALL_PREFIX}/lib/cmake")
 endif()
 
-set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${CMAKE_CURRENT_SOURCE_DIR}/cmake/scripts" "${CMAKE_CURRENT_SOURCE_DIR}/external" "${CMAKE_CURRENT_SOURCE_DIR}")
-link_directories("${CMAKE_INSTALL_PREFIX}/lib")
-# jsoncpp
-set(JSONCPP_REPOSITORY "https://github.com/open-source-parsers/jsoncpp.git")
-set(JSONCPP_VERSION "master")
-
-set(OPENSSL_REPOSITORY "https://github.com/flagarde/openssl-cmake.git")
-set(OPENSSL_TAG "master")
+set(CMAKE_MACOSX_RPATH TRUE)
+set(CMAKE_SKIP_BUILD_RPATH FALSE)
+set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+set(CMAKE_INSTALL_RPATH "${LIBRARY_OUTPUT_DIR}")
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 configure_file("${PROJECT_SOURCE_DIR}/confs/Elog.json" "${CMAKE_INSTALL_PREFIX}/confs/Elog_DEMO.json" COPYONLY)
 

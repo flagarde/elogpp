@@ -7,25 +7,22 @@ int main()
 {
     ElogManager manager;
     manager.print();
-    //manager.PrintServer();
-    //manager.PrintUser();
-    //manager.SetDefaultUser("Moi");
     ElogEntry entry= manager.createEntry();
     std::cout<<"*****************************************************"<<std::endl;
     std::cout<<"* 1) Last entry is :                                *"<<std::endl;
     std::cout<<"*****************************************************"<<std::endl;
-    entry.user("lagarde").to("NAS","Test").receiveEntry("last");
+    entry.user("toto").to("Elog","demo").receiveEntry("last");
     entry.print();
     
     std::cout<<"*****************************************************"<<std::endl;
     std::cout<<"* 2) Now creating a new entry                       *"<<std::endl; 
     std::cout<<"*****************************************************"<<std::endl;
     ElogEntry entry4= manager.createEntry();
+    entry4.setAttribute("Type","Problem Fixed");
     entry4.setAttribute("Category","Other");
     entry4.setAttribute("Author","Boss");
-    //entry.AddAttachment("MyPicture.jpg");
     entry4.setMessage("Please say something !");
-    entry4.user("lagarde").to("NAS","Test").send("V");
+    entry4.user("toto").to("Elog","demo").send("V");
     entry4.print();
     
     std::cout<<"*****************************************************"<<std::endl;
@@ -35,7 +32,7 @@ int main()
     entry2.setAttribute("Type","Routine");
     entry2.setAttribute("Author","Toto");
     entry2.setMessage("Something !");
-    entry2.user("lagarde").to("NAS","Test").replyTo("last").send();
+    entry2.user("toto").to("Elog","demo").replyTo("last").send();
     entry2.print();
   
     
@@ -43,7 +40,7 @@ int main()
     std::cout<<"* 4) Now the last entry is :                        *"<<std::endl;
     std::cout<<"*****************************************************"<<std::endl;
     ElogEntry entry3= manager.createEntry();
-    entry3.user("lagarde").to("NAS","Test").receiveEntry("last");
+    entry3.user("toto").to("Elog","demo").receiveEntry("last");
     entry3.print();
     
     std::cout<<"*****************************************************"<<std::endl;

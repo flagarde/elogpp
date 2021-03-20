@@ -2,14 +2,14 @@
     "ElogServers":
     [
         {
-            "Name":"NAS",
-            "Description":"NAS elog",
-            "Hostname":"202.120.13.50",
+            "Name":"Elog",
+            "Description":"Elog test server",
+            "Hostname":"localhost",
             "Port":"8080",
             "SSL":false,
             "Logbooks":
             [
-                {"Name":"Test", "Description":"Elog test"}
+                {"Name":"demo", "Description":"demo"}
             ]
         }
     ],
