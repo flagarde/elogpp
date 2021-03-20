@@ -12,11 +12,11 @@ project(elogpp VERSION "1.1.0.0" DESCRIPTION "CPP wrapper for elog" HOMEPAGE_URL
 option(COMPILE_ELOG "Compile elog" ON)
 option(BUILD_TEST "Build the test executable" ON)
 
-option(USE_SYSTEM_OPENSSL "Use OpenSSL provided by the system" ON)
-option(USE_SYSTEM_JSONCPP "Use jsoncpp provided by the system" ON)
+option(USE_SYSTEM_OPENSSL "Use OpenSSL provided by the system" OFF)
+option(USE_SYSTEM_JSONCPP "Use jsoncpp provided by the system" OFF)
 
-include(jsoncpp)
-include(openssl)
+include(Jsoncpp)
+include(OpenSSL)
 
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
 set(CMAKE_LINK_DEPENDS_NO_SHARED TRUE)
