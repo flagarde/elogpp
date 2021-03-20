@@ -12,7 +12,8 @@ project(elogpp VERSION "1.1.0.0" DESCRIPTION "CPP wrapper for elog" HOMEPAGE_URL
 option(COMPILE_ELOG "Compile elog" ON)
 option(BUILD_TEST "Build the test executable" ON)
 
-option(USE_SYSTEM_OPENSSL "Use the OPENSSL provided by the system" OFF)
+option(USE_SYSTEM_OPENSSL "Use OpenSSL provided by the system" ON)
+option(USE_SYSTEM_JSONCPP "Use jsoncpp provided by the system" ON)
 
 include(jsoncpp)
 include(openssl)
@@ -52,8 +53,6 @@ set(CMAKE_SKIP_BUILD_RPATH FALSE)
 set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 set(CMAKE_INSTALL_RPATH "${LIBRARY_OUTPUT_DIR}")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-
-configure_file("${PROJECT_SOURCE_DIR}/confs/Elog.json" "${CMAKE_INSTALL_PREFIX}/confs/Elog_DEMO.json" COPYONLY)
 
 add_subdirectory(source)
 
