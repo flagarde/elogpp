@@ -30,7 +30,7 @@ jobs:
       run: sudo apt-get install elog
       
     - name: Start elogd
-      run: sudo elogd -p 80
+      run: sudo elogd -p 8888
       
     - name: ➕ Install cmake
       uses: jwlawson/actions-setup-cmake@v1.5
