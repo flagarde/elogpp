@@ -46,4 +46,8 @@ if(COMPILE_JSONCPP)
                  VERSION "v${JSONCPP_VERSION}"
                  FETCHCONTENT_UPDATES_DISCONNECTED ${IS_OFFLINE}
                  OPTIONS "${jsoncpp_OPTIONS}")
+  if(jsoncpp_ADDED)
+    target_include_directories(jsoncpp_lib PUBLIC $<BUILD_INTERFACE:${jsoncpp_SOURCE_DIR}/include>)
+    target_include_directories(jsoncpp_static PUBLIC $<BUILD_INTERFACE:${jsoncpp_SOURCE_DIR}/include>)
+  endif()
 endif()
