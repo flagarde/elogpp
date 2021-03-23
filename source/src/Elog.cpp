@@ -559,12 +559,12 @@ namespace elogpp
           try
           {
             if(tokens[i].substr(0,found)=="$@MID@$") m_ID=std::stoi(SupressSpaces(tokens[i].substr(found+1)));
+            attrib.emplace(SupressSpaces(tokens[i].substr(0,found)),SupressSpaces(tokens[i].substr(found+1)));
           }
           catch(const std::invalid_argument& error)
           {
              m_ID=0;
           }
-          attrib.emplace(SupressSpaces(tokens[i].substr(0,found)),SupressSpaces(tokens[i].substr(found+1)));
         } 
       }    
       return resp;
