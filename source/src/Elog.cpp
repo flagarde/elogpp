@@ -556,7 +556,14 @@ namespace elogpp
         std::size_t found=tokens[i].find(':');
         if(found!=std::string::npos) 
         {
-          if(tokens[i].substr(0,found)=="$@MID@$") m_ID=std::stoi(SupressSpaces(tokens[i].substr(found+1)));
+          try
+          {
+            if(tokens[i].substr(0,found)=="$@MID@$") m_ID=std::stoi(SupressSpaces(tokens[i].substr(found+1)));
+          }
+          throw(const std::invalid_argument& error)
+          {
+             m_ID=0;
+          }
           attrib.emplace(SupressSpaces(tokens[i].substr(0,found)),SupressSpaces(tokens[i].substr(found+1)));
         } 
       }    
