@@ -560,7 +560,7 @@ namespace elogpp
           {
             if(tokens[i].substr(0,found)=="$@MID@$") m_ID=std::stoi(SupressSpaces(tokens[i].substr(found+1)));
           }
-          throw(const std::invalid_argument& error)
+          catch(const std::invalid_argument& error)
           {
              m_ID=0;
           }
