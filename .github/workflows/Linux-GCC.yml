@@ -36,7 +36,10 @@ jobs:
     
     - name: Install elog
       run: sudo apt-get install elog
-      
+    
+    - name: Run elogd
+      run: elogd
+    
     - name: 📥 Download ccache
       id: ccache
       shell: cmake -P {0}
