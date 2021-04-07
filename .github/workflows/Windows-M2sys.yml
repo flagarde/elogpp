@@ -66,7 +66,7 @@ jobs:
         path-type: minimal
         release: true
         update: true
-        install: git mingw-w64-x86_64-toolchain ccache ninja cmake gcc make llvm python git
+        install: git mingw-w64-x86_64-toolchain ninja cmake gcc make llvm python git
 
     - name: Configure
       working-directory: ${{ github.workspace }}
