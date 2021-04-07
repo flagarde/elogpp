@@ -8,6 +8,8 @@ env:
   CCACHE_VERSION: 3.7.7
   CC: cl
   CXX: cl
+  PASSWORD: ${{ secrets.PASSWORD }}
+  SERVER: ${{ secrets.SERVER }}
 
 jobs:
   build:
@@ -77,6 +79,8 @@ jobs:
             -D CMAKE_INSTALL_PREFIX=install
             -D CMAKE_C_COMPILER_LAUNCHER=ccache
             -D CMAKE_CXX_COMPILER_LAUNCHER=ccache
+            -D SERVER=$ENV{SERVER}
+            -D PASSWORD=$ENV{PASSWORD}
           RESULT_VARIABLE result
         )
         if (NOT result EQUAL 0)
