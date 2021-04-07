@@ -33,7 +33,10 @@ jobs:
       with:
         cmake-version: '${{env.CMAKE_VERSION}}'
         github-api-token: ${{ secrets.GITHUB_TOKEN }}
-
+    
+    - name: Install elog
+      run: apt-get install elog
+      
     - name: 📥 Download ccache
       id: ccache
       shell: cmake -P {0}
