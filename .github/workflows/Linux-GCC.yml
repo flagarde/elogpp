@@ -38,7 +38,7 @@ jobs:
       run: sudo apt-get install elog
     
     - name: Run elogd
-      run: sudo elogd -p 4444
+      run: sudo elogd -p 4444 -x -D
     
     - name: 📥 Download ccache
       id: ccache
