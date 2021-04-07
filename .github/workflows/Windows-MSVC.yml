@@ -8,8 +8,6 @@ env:
   CCACHE_VERSION: 3.7.7
   CC: cl
   CXX: cl
-  PASSWORD: ${{ secrets.PASSWORD }}
-  SERVER: ${{ secrets.SERVER }}
 
 jobs:
   build:
@@ -120,21 +118,6 @@ jobs:
     
     - name: ➕ Install Strip
       run: cmake --install build --strip
-      
-    - name: ✅ Run tests
-      shell: cmake -P {0}
-      run: |
-        include(ProcessorCount)
-        ProcessorCount(N)
-        set(ENV{CTEST_OUTPUT_ON_FAILURE} "ON")
-        execute_process(
-          COMMAND ctest -C Debug -j ${N}
-          WORKING_DIRECTORY build
-          RESULT_VARIABLE result
-        )
-        if (NOT result EQUAL 0)
-          message(FATAL_ERROR "Running tests failed!")
-        endif()
 
     - name: Upload
       uses: actions/upload-artifact@v1
