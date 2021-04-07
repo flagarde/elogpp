@@ -4,17 +4,17 @@
         {
             "Name":"Elog",
             "Description":"Elog test server",
-            "Hostname":"localhost",
+            "Hostname":"@SERVER@",
             "Port":"8080",
             "SSL":false,
             "Logbooks":
             [
-                {"Name":"demo", "Description":"demo"}
+                {"Name":"Test", "Description":"Test"}
             ]
         }
     ],
     "ElogUsers":
     [
-        {"Name":"toto","Password":"123456"}
+        {"Name":"me","Password":"@PASSWORD@"}
     ]
 }

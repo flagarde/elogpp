@@ -11,8 +11,7 @@ int main()
     std::cout<<"*****************************************************"<<std::endl;
     std::cout<<"* 1) Last entry is :                                *"<<std::endl;
     std::cout<<"*****************************************************"<<std::endl;
-    entry.user("toto").to("Elog","demo").receiveEntry("last");
-    entry.print();
+    entry.user("me").to("Elog","Test").receiveEntry("last");
     
     std::cout<<"*****************************************************"<<std::endl;
     std::cout<<"* 2) Now creating a new entry                       *"<<std::endl; 
@@ -22,7 +21,7 @@ int main()
     entry4.setAttribute("Category","Other");
     entry4.setAttribute("Author","Boss");
     entry4.setMessage("Please say something !");
-    entry4.user("toto").to("Elog","demo").send("V");
+    entry4.user("me").to("Elog","Test").send("V");
     entry4.print();
     
     std::cout<<"*****************************************************"<<std::endl;
@@ -32,7 +31,7 @@ int main()
     entry2.setAttribute("Type","Routine");
     entry2.setAttribute("Author","Toto");
     entry2.setMessage("Something !");
-    entry2.user("toto").to("Elog","demo").replyTo("last").send();
+    entry2.user("me").to("Elog","Test").replyTo("last").send();
     entry2.print();
   
     
@@ -40,7 +39,7 @@ int main()
     std::cout<<"* 4) Now the last entry is :                        *"<<std::endl;
     std::cout<<"*****************************************************"<<std::endl;
     ElogEntry entry3= manager.createEntry();
-    entry3.user("toto").to("Elog","demo").receiveEntry("last");
+    entry3.user("me").to("Elog","Test").receiveEntry("last");
     entry3.print();
     
     std::cout<<"*****************************************************"<<std::endl;
