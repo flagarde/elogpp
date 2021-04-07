@@ -87,10 +87,6 @@ jobs:
     - name: Build
       run: sudo cmake --build build --config ${{ env.BUILD_TYPE }} --parallel 2
 
-    - name: Run tests
-      working-directory: ${{ github.workspace }}/build
-      run: ctest -C ${{ env.BUILD_TYPE }} -j2 -VV --output-on-failure
-
     - name: Install Strip
       run: cmake --install build --prefix instdir --strip
 
