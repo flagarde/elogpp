@@ -6,12 +6,12 @@ using namespace elogpp;
 int main() 
 {
     ElogManager manager;
-    manager.print();
     ElogEntry entry= manager.createEntry();
     std::cout<<"*****************************************************"<<std::endl;
     std::cout<<"* 1) Last entry is :                                *"<<std::endl;
     std::cout<<"*****************************************************"<<std::endl;
     entry.user("me").to("Elog","Test").receiveEntry("last");
+    entry.print();
     
     std::cout<<"*****************************************************"<<std::endl;
     std::cout<<"* 2) Now creating a new entry                       *"<<std::endl; 
