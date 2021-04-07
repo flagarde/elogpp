@@ -1,6 +1,6 @@
 # elogpp
 
-# Build
+## Build
 [![Linux Clang](https://github.com/flagarde/elogpp/actions/workflows/Linux-Clang.yml/badge.svg)](https://github.com/flagarde/elogpp/actions/workflows/Linux-Clang.yml) [![Linux GCC](https://github.com/flagarde/elogpp/actions/workflows/Linux-GCC.yml/badge.svg)](https://github.com/flagarde/elogpp/actions/workflows/Linux-GCC.yml) [![MacOS Clang](https://github.com/flagarde/elogpp/actions/workflows/MacOS-Clang.yml/badge.svg)](https://github.com/flagarde/elogpp/actions/workflows/MacOS-Clang.yml) [![Windows M2sys](https://github.com/flagarde/elogpp/actions/workflows/Windows-M2sys.yml/badge.svg)](https://github.com/flagarde/elogpp/actions/workflows/Windows-M2sys.yml) [![Windows MSVC](https://github.com/flagarde/elogpp/actions/workflows/Windows-MSVC.yml/badge.svg)](https://github.com/flagarde/elogpp/actions/workflows/Windows-MSVC.yml)
 
 
