@@ -7,7 +7,7 @@ cmmm(VERSION "1.1" REPOSITORY "flagarde/CMakeMM" PROVIDER "gitlab" VERBOSITY VER
 
 cmmm_modules_list(REPOSITORY "flagarde/CMakeCM" PROVIDER "gitlab" DESTINATION "Modules")
 
-project(elogpp VERSION "1.2.0.0" DESCRIPTION "CPP wrapper for elog" HOMEPAGE_URL "https://rpclab.github.io/elogpp" LANGUAGES CXX)
+project(elogpp VERSION "1.0.0.0" DESCRIPTION "CPP wrapper for elog" HOMEPAGE_URL "https://rpclab.github.io/elogpp" LANGUAGES CXX)
 
 option(COMPILE_ELOG "Compile elog" ON)
 option(BUILD_TEST "Build the test executable" ON)
