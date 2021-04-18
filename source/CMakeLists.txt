@@ -1,13 +1,13 @@
 set(ELOGCPP_PUBLIC_HEADERS
-  ../include/ElogConfig.hpp
-  ../include/ElogEntry.hpp
-  ../include/ElogManager.hpp
-  ../include/ElogServer.hpp
-  ../include/ElogUser.hpp
-  ../include/Logbook.hpp
-  ../include/Connector.hpp
-  ../include/Crypt.hpp
-  ../include/Elog.hpp)
+  ${CMAKE_CURRENT_SOURCE_DIR}/../include/ElogConfig.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../include/ElogEntry.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../include/ElogManager.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../include/ElogServer.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../include/ElogUser.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../include/Logbook.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../include/Connector.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../include/Crypt.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../include/Elog.hpp)
 
 set(ELOGCPP_SOURCES
     ElogConfig.cpp
