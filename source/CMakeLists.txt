@@ -1,20 +1,20 @@
-set(ELOGCPP_PUBLIC_HEADERS 
-  ${PROJECT_SOURCE_DIR}/include/ElogConfig.hpp  
-  ${PROJECT_SOURCE_DIR}/include/ElogEntry.hpp  
-  ${PROJECT_SOURCE_DIR}/include/ElogManager.hpp   
-  ${PROJECT_SOURCE_DIR}/include/ElogServer.hpp  
-  ${PROJECT_SOURCE_DIR}/include/ElogUser.hpp 
-  ${PROJECT_SOURCE_DIR}/include/Logbook.hpp
-  ${PROJECT_SOURCE_DIR}/include/Connector.hpp
-  ${PROJECT_SOURCE_DIR}/include/Crypt.hpp
-  ${PROJECT_SOURCE_DIR}/include/Elog.hpp)
+set(ELOGCPP_PUBLIC_HEADERS
+  ../include/ElogConfig.hpp
+  ../include/ElogEntry.hpp
+  ../include/ElogManager.hpp
+  ../include/ElogServer.hpp
+  ../include/ElogUser.hpp
+  ../include/Logbook.hpp
+  ../include/Connector.hpp
+  ../include/Crypt.hpp
+  ../include/Elog.hpp)
 
-set(ELOGCPP_SOURCES  
-    ElogConfig.cpp  
-    ElogEntry.cpp  
-    ElogManager.cpp  
-    ElogServer.cpp  
-    ElogUser.cpp  
+set(ELOGCPP_SOURCES
+    ElogConfig.cpp
+    ElogEntry.cpp
+    ElogManager.cpp
+    ElogServer.cpp
+    ElogUser.cpp
     LogBook.cpp
     Crypt.cpp
     Elog.cpp
@@ -26,7 +26,7 @@ if(WIN32)
   target_link_libraries(elogpp PRIVATE wsock32 PRIVATE ws2_32 PRIVATE shlwapi)
   set_target_properties(elogpp PROPERTIES LINK_FLAGS "/NODEFAULTLIB:\"LIBCMTD\";\"LIBCMT\"")
 endif()
-target_include_directories(elogpp  PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include> PUBLIC $<INSTALL_INTERFACE:${CMAKE_INSTALL_FULL_INCLUDEDIR}/elogpp>)
+target_include_directories(elogpp  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include> PUBLIC $<INSTALL_INTERFACE:${CMAKE_INSTALL_FULL_INCLUDEDIR}/elogpp>)
 target_link_libraries(elogpp PUBLIC jsoncpp_static PUBLIC OpenSSL::SSL)
 set_target_properties(elogpp PROPERTIES PUBLIC_HEADER "${ELOGCPP_PUBLIC_HEADERS}")
 add_library(elogpp::elogpp ALIAS elogpp)
