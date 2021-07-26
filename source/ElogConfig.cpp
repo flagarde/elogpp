@@ -126,7 +126,7 @@ void ElogConfig::extractElogServersInfos(const Json::Value& root)
 void ElogConfig::printServer(const std::string& server)
 {
   if(m_hasBeenLoaded==false) openFile();
-  if(server!="")
+  if(!server.empty())
   {
     if(m_Servers.find(server)!=m_Servers.end()) m_Servers[server].print();
     else std::cout<<"Server with name "<<server<<" unknown ! Please check your configuration file ! \n";
@@ -137,7 +137,7 @@ void ElogConfig::printServer(const std::string& server)
 void ElogConfig::printUser(const std::string& user)
 {
   if(m_hasBeenLoaded==false) openFile();
-  if(user!="")
+  if(!user.empty())
   {
     if(m_Users.find(user)!=m_Users.end()) m_Users[user].print();
     else std::cout<<"Server with name "<<user<<" unknown ! Please check your configuration file ! \n";
