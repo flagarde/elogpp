@@ -69,22 +69,25 @@ bool ElogConfig::hasServer(const std::string& server)
 
 void ElogConfig::openFile()
 {
-  dotenv::init();
-  Json::CharReaderBuilder builder;
-  Json::Value obj;   // will contain the root value after parsing.
-  if(m_Path.empty()) m_Path = NormalizePath(dotenv::getenv("ELOG_CONFIG_PATH", "."));
-  if(m_ConfigFile.empty()) m_ConfigFile = dotenv::getenv("ELOG_CONFIG_FILE", "ElogConfig.json");
-  std::string errs;
-  std::ifstream ConfFile((m_Path+"/"+m_ConfigFile).c_str(),std::ifstream::binary);
-  std::cout<<m_Path+"/"+m_ConfigFile<<std::endl;
-  bool ok = Json::parseFromStream(builder,ConfFile,&obj,&errs);
-  if( !ok )
+  if(m_hasBeenLoaded == false)
   {
-    std::cout  << errs << "\n";
+    dotenv::init();
+    Json::CharReaderBuilder builder;
+    Json::Value obj;   // will contain the root value after parsing.
+    if(m_Path.empty()) m_Path = NormalizePath(dotenv::getenv("ELOG_CONFIG_PATH", "."));
+    if(m_ConfigFile.empty()) m_ConfigFile = dotenv::getenv("ELOG_CONFIG_FILE", "ElogConfig.json");
+    std::string errs;
+    std::ifstream ConfFile((m_Path+"/"+m_ConfigFile).c_str(),std::ifstream::binary);
+    std::cout<<m_Path+"/"+m_ConfigFile<<std::endl;
+    bool ok = Json::parseFromStream(builder,ConfFile,&obj,&errs);
+    if( !ok )
+    {
+      std::cout  << errs << "\n";
+    }
+    extractElogServersInfos(obj);
+    extractElogUsersInfos(obj);
+    m_hasBeenLoaded = true;
   }
-  extractElogServersInfos(obj);
-  extractElogUsersInfos(obj);
-  m_hasBeenLoaded = true;
 }
 
 void ElogConfig::extractElogUsersInfos(const Json::Value& root)
