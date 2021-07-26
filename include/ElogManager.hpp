@@ -16,6 +16,8 @@ public:
   void print();
   void setPath(const std::string&);
   void setConfigFile(const std::string&);
+  std::string getPath();
+  std::string getConfigFile();
   void setVerbosity(const bool&);
   bool isVerbose();
   ElogEntry createEntry();
