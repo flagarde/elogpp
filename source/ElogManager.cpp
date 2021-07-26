@@ -14,6 +14,16 @@ ElogEntry ElogManager::createEntry()
   return std::move(entry);
 }
 
+std::string ElogManager::getPath()
+{
+  return m_Conf.getPath();
+}
+  
+std::string ElogManager::getConfigFile()
+{
+  return m_Conf.getConfigFile();
+}
+  
 void ElogManager::setPath(const std::string& path)
 {
   m_Conf.setPath(path);
