@@ -10,7 +10,7 @@ cmmm_modules_list(REPOSITORY "flagarde/CMakeCM" PROVIDER "gitlab")
 project(elogpp VERSION "1.9.0.0" DESCRIPTION "CPP wrapper for elog" HOMEPAGE_URL "https://rpclab.github.io/elogpp" LANGUAGES CXX)
 
 option(COMPILE_ELOG "Compile elog" ON)
-option(BUILD_TEST "Build the test executable" ON)
+option(BUILD_TESTS "Build the test executable" ON)
 
 option(USE_SYSTEM_OPENSSL "Use OpenSSL provided by the system" OFF)
 option(USE_SYSTEM_JSONCPP "Use jsoncpp provided by the system" OFF)
@@ -48,7 +48,7 @@ if(COMPILE_ELOG)
   add_subdirectory(apps)
 endif()
 
-if(BUILD_TEST)
+if(BUILD_TESTS)
   include(CTest)
   add_subdirectory(tests)
 endif()
