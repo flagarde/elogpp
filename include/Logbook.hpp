@@ -1,9 +1,10 @@
 #pragma once
+
 #include <string>
 
 namespace elogpp
 {
-  
+
 class Logbook
 {
 public:
@@ -13,8 +14,8 @@ public:
   std::string getDescription();
   void print(const std::string& shift="");
 private:
-  std::string m_Description{""};
-  std::string m_Name{""};
+  std::string m_Description;
+  std::string m_Name;
 };
 
 }

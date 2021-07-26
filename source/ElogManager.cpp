@@ -1,27 +1,28 @@
 #include "ElogManager.hpp"
-#include <map>
-#include <string>
-#include <memory>
-#include <iostream>
 #include "ElogServer.hpp"
 #include "ElogUser.hpp"
 #include "ElogEntry.hpp"
 
+#include <string>
+
 namespace elogpp
 {
-  
+
 ElogEntry ElogManager::createEntry()
 {
   ElogEntry entry;
   return std::move(entry);
 }
 
-/*void ElogManager::SetDefaultUser(std::string user)
+void ElogManager::setPath(const std::string& path)
 {
-    if(Users.find(user)!=Users.end()) DefaultUser=user;
-    else std::cout<<"User "<<user<<" unknow ! Please check your configuration file !\n";
-}*/
+  m_Conf.setPath(path);
+}
 
+void ElogManager::setConfigFile(const std::string& file)
+{
+  m_Conf.setConfigFile(file);
+}
 
 void ElogManager::printServer(const std::string& server)
 {

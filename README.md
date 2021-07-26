@@ -39,7 +39,8 @@ elogpp allows user to send and retrieve/parse entry from an elog server (see exa
 
 * Export this configuration :
 ```bash
-export ElogServerConfFile=Path/Config.json
+export ELOG_CONFIG_PATH=path
+export ELOG_CONFIG_FILE=Elog.json
 ```
 
 ## Example :

@@ -155,16 +155,16 @@ private:
   std::vector<std::string> m_Attachments;
   std::vector<int> att_size;
   std::vector<char*> buffer;
-  std::string m_Logbook{""};
-  std::string m_Subdir{""};
-  std::string m_Textfile{""};
+  std::string m_Logbook;
+  std::string m_Subdir;
+  std::string m_Textfile;
   bool text_flag{false};
   std::map<std::string,std::string> m_Attributes;
-  std::string m_Uname{""};
-  std::string m_Upwd{""};
+  std::string m_Uname;
+  std::string m_Upwd;
   bool m_quote_on_reply{false};
   bool m_Suppress{false};
-  std::string m_Text{""};
+  std::string m_Text;
   int m_Encoding{0};
 };
 

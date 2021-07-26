@@ -1,11 +1,13 @@
 #pragma once
-#include "Logbook.hpp"
+
 #include <string>
 #include <map>
 
+#include "Logbook.hpp"
+
 namespace elogpp
 {
-  
+
 class ElogServer
 {
 public :
@@ -27,12 +29,12 @@ public :
     void addLogbook(Logbook&);
 private:
     void setServerNumber(const unsigned int&);
-    std::string m_Hostname{""};
-    std::string m_Port{""};
-    std::string m_SubDir{""};
+    std::string m_Hostname;
+    std::string m_Port;
+    std::string m_SubDir;
     bool m_SSL{false};
-    std::string m_Name{""};
-    std::string m_Description{""};
+    std::string m_Name;
+    std::string m_Description;
     static int m_ServerNumberTotal;
     unsigned int m_ServerNumber{0};
     std::map<std::string,Logbook> m_Logbooks;

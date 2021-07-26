@@ -1,20 +1,20 @@
 {
-    "ElogServers":
-    [
-        {
-            "Name":"Elog",
-            "Description":"Elog test server",
-            "Hostname":"127.0.0.1",
-            "Port":"4444",
-            "SSL":false,
-            "Logbooks":
-            [
-                {"Name":"Test", "Description":"Test"}
-            ]
-        }
-    ],
-    "ElogUsers":
-    [
-        {"Name":"me","Password":"123456"}
-    ]
+  "ElogServers":
+  [
+    {
+      "Name":"Elog",
+      "Description":"Elog test server",
+      "Hostname":"127.0.0.1",
+      "Port":"8080",
+      "SSL":false,
+      "Logbooks":
+      [
+        {"Name":"demo", "Description":"demo"}
+      ]
+    }
+  ],
+  "ElogUsers":
+  [
+    {"Name":"me","Password":"123456"}
+  ]
 }

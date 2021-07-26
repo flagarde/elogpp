@@ -1,3 +1,5 @@
+include(Dotenv)
+
 set(ELOGCPP_PUBLIC_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/../include/ElogConfig.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../include/ElogEntry.hpp
@@ -28,7 +30,7 @@ if(WIN32)
 endif()
 target_include_directories(elogpp  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include> PUBLIC $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/elogpp>)
 
-target_link_libraries(elogpp PUBLIC jsoncpp_static PUBLIC OpenSSL::SSL)
+target_link_libraries(elogpp PUBLIC jsoncpp_static PUBLIC OpenSSL::SSL PRIVATE laserpants::dotenv)
 set_target_properties(elogpp PROPERTIES PUBLIC_HEADER "${ELOGCPP_PUBLIC_HEADERS}")
 add_library(elogpp::elogpp ALIAS elogpp)
 install(TARGETS elogpp RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}" ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}" PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/elogpp")

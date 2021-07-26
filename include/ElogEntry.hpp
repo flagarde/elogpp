@@ -1,12 +1,13 @@
 #pragma once
+
 #include "ElogConfig.hpp"
 #include "Elog.hpp"
 
-enum class Type{Reply,Download,Option}; 
+enum class Type{Reply,Download,Option};
 
 namespace elogpp
 {
-  
+
 class ElogEntry
 {
 public:

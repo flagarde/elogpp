@@ -1,10 +1,10 @@
-#ifndef ElogUser_h
-#define ElogUser_h
+#pragma once
+
 #include <string>
 
 namespace elogpp
 {
-  
+
 class ElogUser
 {
 public:
@@ -14,9 +14,8 @@ public:
     std::string getPassword();
     void print();
 private:
-    std::string m_Name{""};
-    std::string m_Password{""};
+    std::string m_Name;
+    std::string m_Password;
 };
 
 }
-#endif

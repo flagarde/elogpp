@@ -4,63 +4,87 @@
 #include <fstream>
 #include <iostream>
 
+#include <dotenv.h>
+
 namespace elogpp
 {
-  
+
+std::string ElogConfig::NormalizePath(const std::string& path)
+{
+  std::size_t found = path.find_last_of("/\\");
+  if(found==std::string::npos) return path;
+  else if(found==path.size()-1) return path.substr(0,found);
+  else return path;
+}
+
 ElogUser ElogConfig::getUser(const std::string& user)
 {
+  if(m_hasBeenLoaded==false) openFile();
   if(hasUser(user)) return m_Users[user];
   else throw;
 }
 
 ElogServer ElogConfig::getServer(const std::string& server)
 {
+  if(m_hasBeenLoaded==false) openFile();
   if(hasServer(server)) return m_Servers[server];
   else throw;
 }
 
+void ElogConfig::setPath(const std::string& path)
+{
+  m_hasBeenLoaded=false;
+  m_Path=path;
+}
+
+void ElogConfig::setConfigFile(const std::string& file)
+{
+  m_hasBeenLoaded=false;
+  m_ConfigFile=file;
+}
+
+std::string ElogConfig::getPath()
+{
+  return m_Path;
+}
+
+std::string ElogConfig::getConfigFile()
+{
+  return m_ConfigFile;
+}
+
 bool ElogConfig::hasUser(const std::string& user)
 {
+  if(m_hasBeenLoaded==false) openFile();
   if(m_Users.find(user)!=m_Users.end()) return true;
   else return false;
 }
 
 bool ElogConfig::hasServer(const std::string& server)
 {
+  if(m_hasBeenLoaded==false) openFile();
   if(m_Servers.find(server)!=m_Servers.end()) return true;
   else return false;
 }
 
-ElogConfig::ElogConfig()
+void ElogConfig::openFile()
 {
-  extractElogServersInfos(openJSONFile("ElogServerConfFile"));
-  extractElogUsersInfos(openJSONFile("ElogServerConfFile"));
-}
-
-std::string ElogConfig::getEnvVar(const std::string& key )
-{
-  if(std::getenv( key.c_str() )==nullptr) return "";
-  else return std::string(std::getenv( key.c_str() ));
-}
-
-Json::Value ElogConfig::openJSONFile(const std::string& envVar)
-{
+  dotenv::init();
   Json::CharReaderBuilder builder;
   Json::Value obj;   // will contain the root value after parsing.
+  if(m_Path.empty()) m_Path = NormalizePath(dotenv::getenv("ELOG_CONFIG_PATH", "."));
+  if(m_ConfigFile.empty()) m_ConfigFile = dotenv::getenv("ELOG_CONFIG_FILE", "ElogConfig.json");
   std::string errs;
-  std::string FileName=getEnvVar(envVar.c_str());
-  if(FileName=="")
-  {
-    std::cout<<"Please add "<<envVar<<" as variable environment ! \n";
-    std::exit(2);
-  }
-  std::ifstream ConfFile(FileName.c_str(),std::ifstream::binary);
+  std::ifstream ConfFile((m_Path+"/"+m_ConfigFile).c_str(),std::ifstream::binary);
+  std::cout<<m_Path+"/"+m_ConfigFile<<std::endl;
   bool ok = Json::parseFromStream(builder,ConfFile,&obj,&errs);
-  if ( !ok )
+  if( !ok )
   {
     std::cout  << errs << "\n";
   }
-  return obj;
+  extractElogServersInfos(obj);
+  extractElogUsersInfos(obj);
+  m_hasBeenLoaded = true;
 }
 
 void ElogConfig::extractElogUsersInfos(const Json::Value& root)
@@ -87,7 +111,7 @@ void ElogConfig::extractElogServersInfos(const Json::Value& root)
     server.setPort(elogservers[i]["Port"].asString());
     server.setSSL(elogservers[i]["SSL"].asBool());
     server.setSubDir(elogservers[i]["SubDir"].asString());
-    const Json::Value& logbooks = elogservers[i]["Logbooks"]; 
+    const Json::Value& logbooks = elogservers[i]["Logbooks"];
     for (unsigned int j = 0; j < logbooks.size(); ++j)
     {
       Logbook logbook;
@@ -101,6 +125,7 @@ void ElogConfig::extractElogServersInfos(const Json::Value& root)
 
 void ElogConfig::printServer(const std::string& server)
 {
+  if(m_hasBeenLoaded==false) openFile();
   if(server!="")
   {
     if(m_Servers.find(server)!=m_Servers.end()) m_Servers[server].print();
@@ -111,6 +136,7 @@ void ElogConfig::printServer(const std::string& server)
 
 void ElogConfig::printUser(const std::string& user)
 {
+  if(m_hasBeenLoaded==false) openFile();
   if(user!="")
   {
     if(m_Users.find(user)!=m_Users.end()) m_Users[user].print();
