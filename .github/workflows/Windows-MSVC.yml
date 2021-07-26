@@ -1,191 +1,39 @@
 name: Windows MSVC
 
+env:
+  CMAKE_VERSION: 3.16.x
+  CMAKE_BUILD_TYPE: Release
+  CMAKE_BUILD_PREFIX: "${{ github.workspace }}/build"
+
 on:
     push:
     pull_request:
-    schedule:
-    #Every Sunday at midnight
-    - cron:  '0 0 * * 0'
-
-
-env:
-  CMAKE_VERSION: 3.16.x
-  NINJA_VERSION: 1.10.2
-  BUILD_TYPE: Release
-  CC: cl
-  CXX: cl
-  artifact: "Windows-MSVC.tar.xz"
-  BUILDCACHE_VERSION: 0.23.0
-  BUILDCACHE_DIR: ${{ github.workspace }}/buildcache_dir
 
 jobs:
-
   # Checkout apply clang-format and upload artifact
-  format:
-    name: "Format"
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2.3.2
-
-    - name: Use clang-format
-      uses: DoozyX/clang-format-lint-action@v0.11
-      with:
-        source: '.'
-        clangFormatVersion: 11
-        inplace: True
-
-    - name: Setup Python
-      uses: actions/setup-python@v2
-
-    - name: Install cmakelang
-      uses: BSFishy/pip-action@v1
-      with:
-        packages: cmakelang pyyaml jinja2
-
-    - name: Use cmake-format
-      run: find . \( -name '*.cmake' -o -name 'CMakeLists.txt' \) -exec cmake-format -i {} \;
-
-    - name: Upload artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: clang-format
-        path: ${{ github.workspace }}
-
   build:
-    needs: format
     name: "Build"
     runs-on: windows-latest
-    strategy:
-      fail-fast: false
     steps:
 
-    - uses: actions/download-artifact@v2
-      with:
-        name: clang-format
+    - name: Setup Visual Studio
+      uses: ilammy/msvc-dev-cmd@v1.8.0
 
-    - name: Install cmake
-      uses: jwlawson/actions-setup-cmake@v1.6
+    - name: Setup CMake
+      uses: jwlawson/actions-setup-cmake@v1.9
       with:
         cmake-version: '${{env.CMAKE_VERSION}}'
-        github-api-token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Install Ninja
-      uses: seanmiddleditch/gha-setup-ninja@v3
-      with:
-        version: '${{env.NINJA_VERSION}}'
-
-    - name: Setup vsdevenv
-      uses: seanmiddleditch/gha-setup-vsdevenv@master
-      with:
-        arch: 'x86'
-        host_arch: 'x86'
-
-    - name: Download buildcache
-      id: buildcache-download
-      shell: cmake -P {0}
-      run: |
-          set(buildcache_suffix "win-msvc.zip")
-          set(buildcache_version $ENV{BUILDCACHE_VERSION})
-          set(buildcache_url "https://github.com/mbitsnbites/buildcache/releases/download/v${buildcache_version}/buildcache-${buildcache_suffix}")
-          file(DOWNLOAD "${buildcache_url}" ./buildcache.zip)
-          execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ./buildcache.zip)
-
-    - name: Prepare cache timestamp
-      id: cache_timestamp_string
-      shell: cmake -P {0}
-      run: |
-          string(TIMESTAMP current_date "%Y-%m-%d" UTC)
-          message("::set-output name=timestamp::${current_date}")
-
-    - name: Cache Buildcache
-      id: cache-buildcache
-      uses: actions/cache@v2
-      with:
-        path: ${{ env.BUILDCACHE_DIR }}
-        key: ${{ matrix.config.name }}-cache-v02-${{ steps.cache_timestamp_string.outputs.timestamp }}
-
-    - name: Create Folder for buildcache
-      run: New-Item ${{ env.BUILDCACHE_DIR }} -ItemType "directory" -Force
-      shell: pwsh
-
-    - name: Add buildcache to system path
-      run: echo "${{github.workspace}}/buildcache/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8
-      shell: pwsh
+    - name: Checkout
+      uses: actions/checkout@v2.3.4
 
     - name: Configure
-      run: cmake -S . -G Ninja -B build -D CMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -D CMAKE_C_COMPILER_LAUNCHER=buildcache -D CMAKE_CXX_COMPILER_LAUNCHER=buildcache
+      run: cmake -S ${{ github.workspace }} -B ${{ env.CMAKE_BUILD_PREFIX }}
       shell: cmd
 
     - name: Build
-      run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel 2
-      shell: cmd
+      run: cmake --build ${{ env.CMAKE_BUILD_PREFIX }} --config ${{ env.CMAKE_BUILD_TYPE }} --parallel 2
 
-    - name: Install Strip
-      run: cmake --install build --prefix instdir --strip
-      shell: cmd
-
-  release:
-    name: "Release"
-    if: contains(github.ref, 'tags/v')
-    runs-on: ubuntu-latest
-    needs: build
-
-    steps:
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1.0.0
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
-        draft: false
-        prerelease: false
-
-    - name: Store Release url
-      run: |
-        echo "${{ steps.create_release.outputs.upload_url }}" > ./upload_url
-
-    - name: Pack
-      working-directory: instdir
-      run: cmake -E tar cJfv ../${{ env.artifact }} .
-
-    - name: Upload
-      uses: actions/upload-artifact@v2
-      with:
-        path: instdir
-        name: ${{ env.artifact }}
-
-  publish:
-    if: contains(github.ref, 'tags/v')
-    name: "Publish"
-    runs-on: ubuntu-latest
-    needs: release
-
-    steps:
-    - name: Download artifact
-      uses: actions/download-artifact@v1
-      with:
-        name: ${{ env.artifact }}
-        path: ./
-
-    - name: Download URL
-      uses: actions/download-artifact@v1
-      with:
-        name: upload_url
-        path: ./
-    - id: set_upload_url
-      run: |
-        upload_url=`cat ./upload_url`
-        echo ::set-output name=upload_url::$upload_url
-    - name: Upload to Release
-      id: upload_to_release
-      uses: actions/upload-release-asset@v1.0.1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.set_upload_url.outputs.upload_url }}
-        asset_path: ./${{ env.artifact }}
-        asset_name: ${{ env.artifact }}
-        asset_content_type: application/x-gtar
+    - name: Run tests
+      working-directory: ${{ env.CMAKE_BUILD_PREFIX }}
+      run: ctest -C ${{ env.CMAKE_BUILD_TYPE }} -j2 -VV --output-on-failure
