@@ -1,6 +1,5 @@
 #pragma once
 #include "Connector.hpp"
-#include "Crypt.hpp"
 
 #include<vector>
 #include<map>
@@ -103,10 +102,7 @@ public:
   {
     m_Uname=user;
   }
-  void setPassword(const std::string_view pass)
-  {
-    m_Upwd=do_crypt(pass);
-  }
+  void setPassword(const std::string_view pass);
   void setQuoteInReply(const bool quote)
   {
     m_quote_on_reply=quote;

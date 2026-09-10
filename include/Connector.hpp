@@ -22,23 +22,20 @@ namespace cxx::elog
 
     void setHostname(const std::string_view hostname) { m_Hostname=hostname; }
     std::string_view getHostname() const noexcept { return m_Hostname; }
-    void setPort(const std::uint16_t port);
+    void setPort(const std::uint16_t port) { m_Port = port; }
     std::uint16_t getPort() const noexcept { return m_Port; }
-    void setVerbosity(bool verbose);
-    bool getVerbosity() const noexcept
-    {
-      return m_Verbose;
-    }
-    void setSSL(bool ssl);
-    bool getSSL();
+    void setVerbosity(const bool verbose) noexcept { m_Verbose = verbose; }
+    bool getVerbosity() const noexcept { return m_Verbose; }
+    void setSSL(const bool ssl);
+    bool getSSL() const noexcept { return m_SSL; }
     void connect();
     void disconnect();
     std::string receive();
     void send(const std::string_view request);
     void setCACertificateFile(const std::filesystem::path& path) { s_CACertFilePath = path; }
-    std::filesystem::path getCACertificateFile() noexcept { return s_CACertFilePath; }
+    std::filesystem::path getCACertificateFile() const noexcept { return s_CACertFilePath; }
     void setCACertificatePath(const std::filesystem::path& path) { s_CACertDirPath = path; }
-    std::filesystem::path getCACertificatePath() noexcept { return s_CACertDirPath; }
+    std::filesystem::path getCACertificatePath() const noexcept { return s_CACertDirPath; }
 
   private:
     struct SSLDeleter

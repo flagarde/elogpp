@@ -52,16 +52,8 @@ namespace cxx::elog
     }
     #endif
   }
-  void Connector::setPort(const std::uint16_t port)
-  {
-    m_Port=port;
-  }
-  void Connector::setVerbosity(bool verbose)
-  {
-    m_Verbose=verbose;
-  }
 
-  void Connector::setSSL(bool ssl)
+  void Connector::setSSL(const bool ssl)
   {
     #ifndef HAVE_SSL
     if(ssl)
@@ -72,10 +64,7 @@ namespace cxx::elog
     m_SSL=ssl;
     #endif
   }
-  bool Connector::getSSL()
-  {
-    return m_SSL;
-  }
+
   void Connector::connect()
   {
     if(m_Hostname.empty())

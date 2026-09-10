@@ -1,4 +1,5 @@
 #include "Elog.hpp"
+#include "Crypt.hpp"
 #include <iostream>
 #include <cstring>
 #include <algorithm>
@@ -99,24 +100,6 @@ namespace cxx::elog
     return eval;
   }
 
-  int equal_ustring(const std::string &str1, const std::string &str2) {
-    if (toupper(str1) == toupper(str2))
-      return true;
-    else
-      return false;
-  }
-
-  /*-------------------------------------------------------------------*/
-  /* convert all special characters to underscores in a string */
-  std::string stou(const std::string& str)
-  {
-    std::string ret=str;
-    for(std::size_t i=0;i!=ret.size();++i)
-    {
-      if(ret[i] == ' ' || ret[i] == '.' || ret[i] == '/' || ret[i] == '\\' ||ret[i] == '-' || ret[i] == '(' || ret[i] == ')') ret[i] = '_';
-    }
-    return ret;
-  }
 
   /*------------------------------------------------------------------*/
 
@@ -519,6 +502,12 @@ std::uniform_int_distribution<unsigned> dist(0, 0xFFFF);
     else std::cout<<"Error transmitting message\n";
     return 1;
 
+  }
+
+
+    void Elog::setPassword(const std::string_view pass)
+  {
+    m_Upwd=do_crypt(pass);
   }
 
   std::string Elog::retrieve_elog(std::map<std::string,std::string>& attrib,std::string& text)
