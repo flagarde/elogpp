@@ -5,8 +5,11 @@
 #include<vector>
 #include<map>
 #include<string>
+#include<string_view>
+#include<cstdint>
+#include <filesystem>
 
-namespace elogpp
+namespace cxx::elog
 {
 
 enum Type { Edit, Download, Reply, New };
@@ -14,23 +17,28 @@ enum Type { Edit, Download, Reply, New };
 class Elog
 {
 public:
-  void setType(const Type& type)
+  Elog() noexcept = default;
+  Elog(Elog&& other) noexcept = default;
+  Elog& operator=(Elog&& other) noexcept = default;
+  Elog(const Elog&) = delete;
+  Elog& operator=(const Elog&) = delete;
+  void setType(const Type type)
   {
     m_Type=type;
   }
-  Type getType()
+  Type getType() const noexcept
   {
     return m_Type;
   }
-  void setVerbosity(const bool& verbose)
+  void setVerbosity(const bool verbose)
   {
     m_Connector.setVerbosity(verbose);
   }
-  bool getVerbosity()
+  bool getVerbosity() const noexcept
   {
     return m_Connector.getVerbosity();
   }
-  void setSSL(const bool& ssl)
+  void setSSL(const bool ssl)
   {
     m_Connector.setSSL(ssl);
   }
@@ -38,19 +46,19 @@ public:
   {
     return m_Connector.getSSL();
   }
-  void setHostname(const std::string& hostname)
+  void setHostname(const std::string_view hostname)
   {
     m_Connector.setHostname(hostname);
   }
-  std::string getHostname()
+  std::string_view getHostname()
   {
     return m_Connector.getHostname();
   }
-  void setPort(const unsigned int& port)
+  void setPort(const std::uint16_t port)
   {
     m_Connector.setPort(port);
   }
-  unsigned int getPort()
+  std::uint16_t getPort()
   {
     return m_Connector.getPort();
   }
@@ -62,7 +70,7 @@ public:
   {
     m_Connector.disconnect();
   }
-  void setID(const int& ID)
+  void setID(const int ID)
   {
     m_ID=ID;
   }
@@ -82,7 +90,7 @@ public:
   {
     return m_Logbook;
   }
-  void setSubdir(const std::string& subdir)
+  void setSubdir(const std::string_view subdir)
   {
     m_Subdir=subdir;
   }
@@ -91,23 +99,23 @@ public:
   {
     m_Attributes.emplace(key,value);
   }
-  void setUserName(const std::string& user)
+  void setUserName(const std::string_view user)
   {
     m_Uname=user;
   }
-  void setPassword(const std::string& pass)
+  void setPassword(const std::string_view pass)
   {
     m_Upwd=do_crypt(pass);
   }
-  void setQuoteInReply(const bool& quote)
+  void setQuoteInReply(const bool quote)
   {
     m_quote_on_reply=quote;
   }
-  void setSupressEmails(const bool& mail)
+  void setSupressEmails(const bool mail)
   {
     m_Suppress=mail;
   }
-  void setEncoding(const int& encoding)
+  void setEncoding(const int encoding)
   {
     m_Encoding=encoding;
   }
@@ -116,10 +124,7 @@ public:
     return text_flag;
   }
   int SubmitElog();
-  ~Elog()
-  {
-    for(std::size_t i = 0; i < buffer.size(); i++) free(buffer[i]);
-  }
+  ~Elog() noexcept = default;
   void setText(const std::string& text)
   {
     m_Text=text;
@@ -145,26 +150,37 @@ public:
   {
     return m_Attachments;
   }
+
+  void setCACertificateFile(const std::filesystem::path& path)
+  {
+    m_Connector.setCACertificateFile(path);
+  }
+
+  void setCACertificatePath(const std::filesystem::path& path)
+  {
+    m_Connector.setCACertificatePath(path);
+  }
+
 private:
-  constexpr static const  int m_maxAttachments{50};
-  constexpr static const int m_maxNAttributes{50};
+  constexpr static const  std::size_t m_maxAttachments{50};
+  constexpr static const std::size_t m_maxNAttributes{50};
   std::string retrieve_elog(std::map<std::string,std::string>& attrib,std::string& text);
   Type m_Type{New};
   Connector m_Connector;
   int m_ID{0};
   std::vector<std::string> m_Attachments;
   std::vector<int> att_size;
-  std::vector<char*> buffer;
-  std::string m_Logbook{""};
-  std::string m_Subdir{""};
-  std::string m_Textfile{""};
+  std::vector<std::vector<std::byte>> buffer;
+  std::string m_Logbook;
+  std::string m_Subdir;
+  std::string m_Textfile;
   bool text_flag{false};
   std::map<std::string,std::string> m_Attributes;
-  std::string m_Uname{""};
-  std::string m_Upwd{""};
+  std::string m_Uname;
+  std::string m_Upwd;
   bool m_quote_on_reply{false};
   bool m_Suppress{false};
-  std::string m_Text{""};
+  std::string m_Text;
   int m_Encoding{0};
 };
 

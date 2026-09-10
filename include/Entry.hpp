@@ -1,15 +1,22 @@
 #pragma once
-#include "ElogConfig.hpp"
 #include "Elog.hpp"
+#include "User.hpp"
+#include "Server.hpp"
 
-enum class Type{Reply,Download,Option}; 
+enum class Type{Reply,Download,Option};
 
-namespace elogpp
+namespace cxx::elog
 {
-  
-class ElogEntry
+
+class Entry
 {
 public:
+  Entry() noexcept = default;
+  ~Entry() = default;
+  Entry(const Entry&) = delete;
+  Entry& operator=(const Entry&) = delete;
+  Entry(Entry&& other) noexcept = default;
+  Entry& operator=(Entry&& other) noexcept = default;
   void setAttribute(const std::string&,const std::string&);
   std::string getAttribute(const std::string&);
   bool isAttribute(const std::string&);
@@ -27,18 +34,17 @@ public:
  /* std::string getFileMessage();*/
   std::string getText();
   bool send(const std::string& param="");
-  ElogEntry& user(const std::string&);
-  ElogEntry& replyTo(const std::string&,const std::string& pa="");
-  ElogEntry& replyTo(const int&,const std::string& pa="");
-  ElogEntry& edit(const int&);
-  ElogEntry& edit(const std::string&);
-  ElogEntry& to(const std::string&,const std::string&);
-  ElogEntry& receiveEntry(const std::string&);
-  ElogEntry& receiveEntry(const int&);
+  Entry& user(const User& user);
+  Entry& replyTo(const std::string&,const std::string& pa="");
+  Entry& replyTo(const int,const std::string& pa="");
+  Entry& edit(const int);
+  Entry& edit(const std::string&);
+  Entry& to(const Server& server,const std::string& logbook);
+  Entry& receiveEntry(const std::string&);
+  Entry& receiveEntry(const int);
   std::string getLastID();
 private :
   std::string supressSpaces(const std::string&);
-  ElogConfig m_Conf;
   Elog m_Elog;
 };
 

@@ -25,7 +25,7 @@
 
 #include <iostream>
 
-int usage() 
+int usage()
 {
   std::cout << "usage: elog\n";
   std::cout << "elog -h <hostname> [-p port] [-d subdir]\n";
@@ -34,8 +34,8 @@ int usage()
   std::cout << "-s                       Use SSL for communication\n";
   std::cout << "[-v]                     For verbose output\n";
   std::cout << "[-u username password]   User name and password\n";
-  std::cout << "[-f <attachment>]        (up to "<< elogpp::Elog::getMaxAttachments()<< " attachments)\n";
-  std::cout << "-a <attribute>=<value>   (up to " << elogpp::Elog::getMaxAttributes()<< " attributes)\n";
+  std::cout << "[-f <attachment>]        (up to "<< cxx::elog::Elog::getMaxAttachments()<< " attachments)\n";
+  std::cout << "-a <attribute>=<value>   (up to " << cxx::elog::Elog::getMaxAttributes()<< " attributes)\n";
   std::cout << "[-r <id>]                Reply to existing message\n";
   std::cout << "[-q]                     Quote original text on reply\n";
   std::cout << "[-e <id>]                Edit existing message\n";
@@ -50,10 +50,10 @@ int usage()
   return 1;
 }
 
-int main(int argc, char *argv[]) 
+int main(int argc, char *argv[])
 {
-  elogpp::Elog elog;
-  for(std::size_t i = 1; i < argc; i++) 
+  cxx::elog::Elog elog;
+  for(std::size_t i = 1; i < argc; i++)
   {
     std::string key{argv[i]};
     if(key=="-v") elog.setVerbosity(true);
@@ -68,62 +68,62 @@ int main(int argc, char *argv[])
       else if(key == "-p") elog.setPort(std::stoi(value));
       else if(key == "-l") elog.setLogbook(value);
       else if(key == "-d")  elog.setSubdir(value);
-      else if(key == "-u") 
+      else if(key == "-u")
       {
         elog.setUserName(value);
         elog.setPassword(argv[++i]);
-      } 
-      else if(key == "-a") 
+      }
+      else if(key == "-a")
       {
         std::size_t found=value.find('=');
-        if(found!=std::string::npos) 
+        if(found!=std::string::npos)
         {
           elog.addAttribute(value.substr(0,found),value.substr(found+1));
-        } 
-        else 
+        }
+        else
         {
           std::cout<<"Error: Attributes must be supplied in the form \"-a <attribute>=<value>\".\n";
           return 1;
         }
-      } 
+      }
       else if(key == "-f") elog.addAttachment(value);
-      else if(key == "-r") 
+      else if(key == "-r")
       {
-        elog.setType(elogpp::Reply);
+        elog.setType(cxx::elog::Reply);
         elog.setID(std::stoi(value));
-      } 
-      else if(key == "-e") 
+      }
+      else if(key == "-e")
       {
-        elog.setType(elogpp::Edit);
+        elog.setType(cxx::elog::Edit);
         elog.setID(std::stoi(value));
-      } 
-      else if(key == "-w") 
+      }
+      else if(key == "-w")
       {
-        elog.setType(elogpp::Download);
+        elog.setType(cxx::elog::Download);
         if(value == "l") elog.setID(-1);
-        else elog.setID(std::stoi(value)); 
-      } 
+        else elog.setID(std::stoi(value));
+      }
       else if(key == "-n") elog.setEncoding(std::stoi(value));
-      else if(key == "-m") 
+      else if(key == "-m")
       {
         elog.setTextFile(value);
-      } 
+      }
       else usage();
-    } 
-    else 
+    }
+    else
     {
       elog.setText(key);
     }
   }
 
 
-  if(elog.getLogbook().empty()) 
+  if(elog.getLogbook().empty())
   {
     std::cout<<"Please specify logbook with the \"-l\" flag.\n";
     return 1;
   }
 
-  if(elog.hasText() == false && (elog.getType()==elogpp::New || elog.getType()==elogpp::Reply)) 
+  if(elog.hasText() == false && (elog.getType()==cxx::elog::New || elog.getType()==cxx::elog::Reply))
   {
     std::cout<<"Please provide a text or a text file"<<std::endl;
     return 1;
@@ -131,8 +131,8 @@ int main(int argc, char *argv[])
 
   /* now submit message */
   elog.SubmitElog();
-  
-  if(elog.getType()==elogpp::Download)
+
+  if(elog.getType()==cxx::elog::Download)
   {
     std::map<std::string,std::string> attributes=elog.getAttributes();
     for(std::map<std::string,std::string>::iterator it=attributes.begin();it!=attributes.end();++it)
@@ -142,6 +142,6 @@ int main(int argc, char *argv[])
     std::cout<<"========================================"<<std::endl;
     std::cout<<elog.getText()<<std::endl;
   }
-  
+
   return 0;
 }

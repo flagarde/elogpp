@@ -1,24 +1,24 @@
 /* SHA256-based Unix crypt implementation.
   *   Released into the Public Domain by Ulrich Drepper <drepper@redhat.com>.
-  *   Adapted for MS Windows by Stefan Ritt <stefan.ritt@psi.ch> 
-  * 
+  *   Adapted for MS Windows by Stefan Ritt <stefan.ritt@psi.ch>
+  *
   *  Copyrights Ulrich Drepper
   *  Copyright 2000 + Stefan Ritt
-  * 
+  *
   *  ELOG is free software: you can redistribute it and/or modify
   *  it under the terms of the GNU General Public License as published by
   *  the Free Software Foundation, either version 3 of the License, or
   *  (at your option) any later version.
-  * 
+  *
   *  ELOG is distributed in the hope that it will be useful,
   *  but WITHOUT ANY WARRANTY; without even the implied warranty of
   *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   *  GNU General Public License for more details.
-  * 
+  *
   *  You should have received a copy of the GNU General Public License
   *  along with ELOG.  If not, see <http://www.gnu.org/licenses/>.
-  * 
-  * 
+  *
+  *
   *   $Id$ */
 #include "Crypt.hpp"
 #include <cstdint>
@@ -27,46 +27,63 @@
  #ifdef _MSC_VER
  #include <stdio.h>
  #include <stdlib.h>
- #include <malloc.h> 
+ #include <malloc.h>
  #define ERANGE 34
  #pragma warning(disable:4996)
 #endif
- 
- #ifndef MAX
- #define MAX(x,y) ((x)>(y)?(x):(y))
- #define MIN(x,y) ((x)<(y)?(x):(y))
- #endif
- 
+
 #include<string>
- 
-namespace elogpp
+#include<string_view>
+#include<algorithm>
+
+namespace cxx::elog
 {
- 
-  
+
+
 
  /* Structure to save state of computation between the single steps.  */
- struct sha256_ctx {
-   uint32_t H[8];
-   
-   uint32_t total[2];
-   uint32_t buflen;
+ class sha256_ctx
+ {
+public:
+   explicit sha256_ctx()
+   {
+      reset();
+   }
+   void reset()
+   {
+     //Initialize structure containing state of computation. (FIPS 180-2:5.3.2)
+      H[0] = 0x6a09e667;
+      H[1] = 0xbb67ae85;
+      H[2] = 0x3c6ef372;
+      H[3] = 0xa54ff53a;
+      H[4] = 0x510e527f;
+      H[5] = 0x9b05688c;
+      H[6] = 0x1f83d9ab;
+      H[7] = 0x5be0cd19;
+      total[0] = 0;
+      total[1] = 0;
+      buflen = 0;
+   }
+   std::uint32_t H[8];
+   std::uint32_t total[2];
+   std::uint32_t buflen{0};
    char buffer[128];            /* NB: always correctly aligned for uint32_t.  */
  };
- 
- 
+
+
  #if __BYTE_ORDER == __LITTLE_ENDIAN
  #define SWAP(n) \
  (((n) << 24) | (((n) & 0xff00) << 8) | (((n) >> 8) & 0xff00) | ((n) >> 24))
  #else
  #define SWAP(n) (n)
  #endif
- 
- 
+
+
  /* This array contains the bytes used to pad the buffer to the next
   *   64-byte boundary.  (FIPS 180-2:5.1.1)  */
  static const unsigned char fillbuf[64] = { 0x80, 0 /* , 0, 0, ...  */  };
- 
- 
+
+
  /* Constants for SHA256 from FIPS 180-2:4.2.2.  */
  static const uint32_t K[64] = {
    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
@@ -185,24 +202,6 @@ static void sha256_process_block(const void *buffer, size_t len, struct sha256_c
 }
 
 
-/* Initialize structure containing state of computation.
-   (FIPS 180-2:5.3.2)  */
-static void sha256_init_ctx(struct sha256_ctx *ctx)
-{
-   ctx->H[0] = 0x6a09e667;
-   ctx->H[1] = 0xbb67ae85;
-   ctx->H[2] = 0x3c6ef372;
-   ctx->H[3] = 0xa54ff53a;
-   ctx->H[4] = 0x510e527f;
-   ctx->H[5] = 0x9b05688c;
-   ctx->H[6] = 0x1f83d9ab;
-   ctx->H[7] = 0x5be0cd19;
-
-   ctx->total[0] = ctx->total[1] = 0;
-   ctx->buflen = 0;
-}
-
-
 /* Process the remaining bytes in the internal buffer and the usual
    prolog according to the standard and write the result to RESBUF.
 
@@ -262,7 +261,7 @@ static void sha256_process_bytes(const void *buffer, size_t len, struct sha256_c
    }
 
    /* Process available complete blocks.  */
-   if (len >= 64) 
+   if (len >= 64)
    {
 if (((uintptr_t) buffer) % sizeof (uint32_t) != 0)
          while (len > 64) {
@@ -294,26 +293,20 @@ if (((uintptr_t) buffer) % sizeof (uint32_t) != 0)
 
 /* Define our magic string to mark salt for SHA256 "encryption"
    replacement.  */
-static const char sha256_salt_prefix[] = "$5$";
+static const std::string_view sha256_salt_prefix{"$5$"};
 
 /* Prefix for optional rounds specification.  */
-static const char sha256_rounds_prefix[] = "rounds=";
-
-/* Maximum salt string length.  */
-#define SALT_LEN_MAX 16
-/* Default number of rounds if not explicitly specified.  */
-#define ROUNDS_DEFAULT 5000
-/* Minimum number of rounds.  */
-#define ROUNDS_MIN 1000
-/* Maximum number of rounds.  */
-#define ROUNDS_MAX 999999999
-
-/* Table with characters for base64 transformation.  */
-static const std::string b64t = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+static const std::string_view sha256_rounds_prefix{"rounds="};
 
 
 static char *sha256_crypt_r(const char *key, const char *salt, char *buffer, int buflen)
 {
+   /* Minimum number of rounds.  */
+   constexpr static std::size_t rounds_min{1000};
+   constexpr static std::size_t rounds_max{999999999};
+   constexpr static std::size_t salt_length_max{16};
+   /* Table with characters for base64 transformation.  */
+   static const std::string b64t = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 #ifdef _MSC_VER
    unsigned char alt_result[32];
    unsigned char temp_result[32];
@@ -323,12 +316,10 @@ static char *sha256_crypt_r(const char *key, const char *salt, char *buffer, int
    unsigned char temp_result[32]
    __attribute__ ((__aligned__(sizeof(uint32_t))));
 #endif
-       
-       
-   struct sha256_ctx ctx;
-   struct sha256_ctx alt_ctx;
-   size_t salt_len;
-   size_t key_len;
+
+
+   sha256_ctx ctx;
+   sha256_ctx alt_ctx;
    size_t cnt;
    char *cp;
    char *copied_key = nullptr;
@@ -336,29 +327,27 @@ static char *sha256_crypt_r(const char *key, const char *salt, char *buffer, int
    char *p_bytes;
    char *s_bytes;
    /* Default number of rounds.  */
-   size_t rounds = ROUNDS_DEFAULT;
+   std::size_t rounds{5000};
    int rounds_custom = 0;
 
-   /* Find beginning of salt string.  The prefix should normally always
-      be present.  Just in case it is not.  */
-   if (strncmp(sha256_salt_prefix, salt, sizeof(sha256_salt_prefix) - 1) == 0)
-      /* Skip salt prefix.  */
-      salt += sizeof(sha256_salt_prefix) - 1;
+   /* Find beginning of salt string.  The prefix should normally always be present.  Just in case it is not.  */
+   if (strncmp(sha256_salt_prefix.data(), salt, sha256_salt_prefix.length()) == 0) /* Skip salt prefix.  */ salt += sha256_salt_prefix.length();
 
-   if (strncmp(salt, sha256_rounds_prefix, sizeof(sha256_rounds_prefix) - 1)
-       == 0) {
-      const char *num = salt + sizeof(sha256_rounds_prefix) - 1;
-      char *endp;
-      unsigned long int srounds = strtoul(num, &endp, 10);
-      if (*endp == '$') {
+   if (strncmp(salt, sha256_rounds_prefix.data(), sha256_rounds_prefix.length()) == 0)
+   {
+      const char *num = salt + sha256_rounds_prefix.length();
+      char* endp{nullptr};
+      std::size_t srounds = strtoul(num, &endp, 10);
+      if(*endp == '$')
+      {
          salt = endp + 1;
-         rounds = MAX(ROUNDS_MIN, MIN(srounds, ROUNDS_MAX));
+         rounds = std::max(rounds_min, std::min(srounds, rounds_max));
          rounds_custom = 1;
       }
    }
 
-   salt_len = MIN(strcspn(salt, "$"), SALT_LEN_MAX);
-   key_len = strlen(key);
+   const std::size_t salt_len = std::min(strcspn(salt, "$"), salt_length_max);
+   const std::size_t key_len = strlen(key);
 
    if ((key - (char *) 0) % sizeof(uint32_t) != 0) {
      char *tmp = (char *) alloca(key_len + sizeof(uint32_t));
@@ -373,7 +362,7 @@ static char *sha256_crypt_r(const char *key, const char *salt, char *buffer, int
    }
 
    /* Prepare for the real work.  */
-   sha256_init_ctx(&ctx);
+   ctx.reset();
 
    /* Add the key string.  */
    sha256_process_bytes(key, key_len, &ctx);
@@ -386,7 +375,7 @@ static char *sha256_crypt_r(const char *key, const char *salt, char *buffer, int
 
    /* Compute alternate SHA256 sum with input KEY, SALT, and KEY.  The
       final result will be added to the first context.  */
-   sha256_init_ctx(&alt_ctx);
+   alt_ctx.reset();
 
    /* Add key.  */
    sha256_process_bytes(key, key_len, &alt_ctx);
@@ -418,7 +407,7 @@ static char *sha256_crypt_r(const char *key, const char *salt, char *buffer, int
    sha256_finish_ctx(&ctx, alt_result);
 
    /* Start computation of P byte sequence.  */
-   sha256_init_ctx(&alt_ctx);
+   alt_ctx.reset();
 
    /* For every character in the password add the entire password.  */
    for (cnt = 0; cnt < key_len; ++cnt)
@@ -436,7 +425,7 @@ static char *sha256_crypt_r(const char *key, const char *salt, char *buffer, int
    memcpy(cp, temp_result, cnt);
 
    /* Start computation of S byte sequence.  */
-   sha256_init_ctx(&alt_ctx);
+   alt_ctx.reset();
 
    /* For every character in the password add the entire password.  */
    for (cnt = 0; (int) cnt < 16 + alt_result[0]; ++cnt)
@@ -457,7 +446,7 @@ static char *sha256_crypt_r(const char *key, const char *salt, char *buffer, int
       CPU cycles.  */
    for (cnt = 0; cnt < rounds; ++cnt) {
       /* New context.  */
-      sha256_init_ctx(&ctx);
+      ctx.reset();
 
       /* Add key or last result.  */
       if ((cnt & 1) != 0)
@@ -485,25 +474,25 @@ static char *sha256_crypt_r(const char *key, const char *salt, char *buffer, int
 
    /* Now we can construct the result string.  It consists of three
       parts.  */
-   strncpy(buffer, sha256_salt_prefix, MAX(0, buflen));
+   strncpy(buffer, sha256_salt_prefix.data(), std::max(0, buflen));
    cp = buffer + strlen(buffer);
    buflen -= sizeof(sha256_salt_prefix) - 1;
 
    if (rounds_custom) {
 #ifdef _MSC_VER
-      int n = _snprintf(cp, MAX(0, buflen), "%s%Iu$",
+      int n = _snprintf(cp, std::max(0, buflen), "%s%Iu$",
                         sha256_rounds_prefix, rounds);
 #else
-      int n = snprintf(cp, MAX(0, buflen), "%s%zu$",
+      int n = snprintf(cp, std::max(0, buflen), "%s%zu$",
                        sha256_rounds_prefix, rounds);
 #endif
       cp += n;
       buflen -= n;
    }
 
-   strncpy(cp, salt, MIN((size_t) MAX(0, buflen), salt_len));
+   strncpy(cp, salt, std::min((size_t) std::max(0, buflen), salt_len));
    cp = cp + strlen(cp);
-   buflen -= MIN((size_t) MAX(0, buflen), salt_len);
+   buflen -= std::min((size_t) std::max(0, buflen), salt_len);
 
    if (buflen > 0) {
       *cp++ = '$';
@@ -542,7 +531,7 @@ static char *sha256_crypt_r(const char *key, const char *salt, char *buffer, int
       attaching to processes or reading core dumps cannot get any
       information.  We do it in this way to clear correct_words[]
       inside the SHA256 implementation as well.  */
-   sha256_init_ctx(&ctx);
+   ctx.reset();
    sha256_finish_ctx(&ctx, alt_result);
    memset(temp_result, '\0', sizeof(temp_result));
    memset(p_bytes, '\0', key_len);
@@ -560,32 +549,20 @@ static char *sha256_crypt_r(const char *key, const char *salt, char *buffer, int
 
 /* This entry point is equivalent to the `crypt' function in Unix
    libcs.  */
-char *sha256_crypt(const char *key, const char *salt)
+std::string sha256_crypt(const std::string_view key, const std::string_view salt)
 {
    /* We don't want to have an arbitrary limit in the size of the
       password.  We can compute an upper bound for the size of the
       result in advance and so we can prepare the buffer we pass to
       `sha256_crypt_r'.  */
-   static char *buffer;
-   static int buflen;
-   int needed = (sizeof(sha256_salt_prefix) - 1
-                 + sizeof(sha256_rounds_prefix) + 9 + 1 + strlen(salt) + 1 + 43 + 1);
-
-   if (buflen < needed) {
-      char *new_buffer = (char *) realloc(buffer, needed);
-      if (new_buffer == nullptr)
-         return nullptr;
-
-      buffer = new_buffer;
-      buflen = needed;
-   }
-
-   return sha256_crypt_r(key, salt, buffer, buflen);
+   thread_local std::string buffer;
+   buffer.resize((sizeof(sha256_salt_prefix) - 1 + sizeof(sha256_rounds_prefix) + 9 + 1 + salt.length() + 1 + 43 + 1));
+   return sha256_crypt_r(key.data(), salt.data(), &buffer[0], buffer.length());
 }
 
-std::string do_crypt(const std::string& password)
+std::string do_crypt(const std::string_view password)
 {
-  return std::string(sha256_crypt(password.c_str(), "$5$")+4);
+  return sha256_crypt(password.data(), "$5$").substr(4);
 }
 
 
