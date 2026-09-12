@@ -60,7 +60,7 @@ namespace cxx::elog
   /*-------------------------------------------------------------------*/
 
   /*
-   * Appends src to string dst of size siz (unlike strncat, siz is the
+   * Appends src to string dst of size siz (unlike strncat, size is the
    * full size of dst, not space left).  At most siz-1 characters
    * will be copied.  Always NUL terminates (unless size <= strlen(dst)).
    * Returns strlen(src) + MIN(size, strlen(initial dst)).

@@ -159,11 +159,11 @@ namespace cxx::elog
     size_t pos = headers_lower.find(target);
 
     if (pos == std::string::npos) {
-        // Pas de Content-Length trouvé (Chunked, pas de body, ou connexion close)
+        // Pas de Content-Length trouvé (Chunked, pas de body, ou connection close)
         return data;
     }
 
-    // On récupère la valeur depuis la chaîne d'origine 'data' à l'index correspondant
+    // On récupère la valeur depuis la chaîne d'origine 'data' à l'index correspondent
     pos += target.length();
     size_t end_pos = data.find_first_of("\r\n", pos);
     if (end_pos == std::string::npos) {
@@ -171,8 +171,6 @@ namespace cxx::elog
     }
 
     std::string value_str = data.substr(pos, end_pos - pos);
-
-    // Nettoyage des espaces blancs
     value_str.erase(0, value_str.find_first_not_of(" \t"));
     value_str.erase(value_str.find_last_not_of(" \t") + 1);
 
@@ -185,7 +183,6 @@ namespace cxx::elog
     size_t body_start_pos = header_end + 4;
     size_t bytes_already_read = data.size() - body_start_pos;
 
-    // --- BOUCLE 2 : LECTURE DU RESTE DU CORPS ---
     size_t bytes_to_read = 0;
     if (content_length > bytes_already_read) {
         bytes_to_read = content_length - bytes_already_read;
@@ -212,16 +209,13 @@ namespace cxx::elog
                 total_bytes_read_in_loop += n;
             }
             else if (n == 0) {
-                throw std::runtime_error("Connexion fermée par le serveur avant d'avoir reçu tout le corps HTTP");
+                throw std::runtime_error("Connection closed by the server before the entire HTTP body was received");
             }
             else {
-                throw std::runtime_error("Erreur de lecture du corps HTTP");
+                throw std::runtime_error("Error reading the HTTP body");
             }
         }
     }
-
-    //std::cout << "Données totales reçues avec succès !" << std::endl;
-
     if (data.capacity() > 1024 * 1024) {
         data.shrink_to_fit();
     }
