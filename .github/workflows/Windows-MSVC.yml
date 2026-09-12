@@ -28,7 +28,7 @@ jobs:
       uses: actions/checkout@v6.0.2
 
     - name: Configure
-      run: cmake -S ${{ github.workspace }} -B ${{ env.CMAKE_BUILD_PREFIX }} -D BUILD_TESTS=OFF
+      run: cmake -S ${{ github.workspace }} -B ${{ env.CMAKE_BUILD_PREFIX }} -D CXX_ELOG_TESTS=OFF
       shell: cmd
 
     - name: Build
